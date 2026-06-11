@@ -101,10 +101,131 @@ nav{position:sticky;top:0;z-index:100;background:var(--surface);border-bottom:1p
 </style>
 </head>
 <body>
+<nav>
+  <div class="nav-brand">연차정산 <span>대시보드</span></div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage(0)">① 산정 방식 안내</button>
+    <button class="nav-tab" onclick="showPage(1)">② 파일 업로드 · 정산</button>
+    <button class="nav-tab" onclick="showPage(2)">③ 누적 정산 내역</button>
+  </div>
+  <div class="nav-right"><div class="total-badge" id="totalBadge">누적 0명</div></div>
+</nav>
 
+<div class="page active" id="page0">
+  <div class="guide-hero">
+    <h2>퇴직 연차미사용수당 정산 방식 안내</h2>
+    <p>퇴직 시 미사용 연차에 대한 수당은 <strong>입사일 기준</strong>과 <strong>회계연도 기준</strong> 중 근로자에게 유리한 방식으로 지급됩니다.</p>
+  </div>
+  <div class="guide-grid">
+    <div class="gcard">
+      <h3><span class="dot"></span>입사일 기준 연차 산정</h3>
+      <div class="step-list">
+        <div class="step-item"><div class="step-num">1</div><div class="step-text">입사 후 <strong>1개월 개근마다 1일</strong> 발생 (최대 11일, 1년 미만)</div></div>
+        <div class="step-item"><div class="step-num">2</div><div class="step-text">입사 <strong>1주년</strong>에 15일 발생 (전년도 출근율 80% 이상)</div></div>
+        <div class="step-item"><div class="step-num">3</div><div class="step-text"><strong>2년마다 1일씩 가산</strong>, 최대 25일까지 증가</div></div>
+        <div class="step-item"><div class="step-num">4</div><div class="step-text">퇴직일 당일 도래 기념일은 <strong>근로관계 종료</strong>로 연차 미발생</div></div>
+      </div>
+    </div>
+    <div class="gcard">
+      <h3><span class="dot"></span>회계연도 기준 연차 산정</h3>
+      <div class="step-list">
+        <div class="step-item"><div class="step-num">1</div><div class="step-text">매년 <strong>1월 1일</strong>에 전년도 근무분 연차 전액 발생</div></div>
+        <div class="step-item"><div class="step-num">2</div><div class="step-text">입사 <strong>첫 해(연중 입사)</strong>는 소정근로일 비례로 계산</div></div>
+        <div class="step-item"><div class="step-num">3</div><div class="step-text">퇴직연도 발생 연차는 <strong>재직비례 없이 전액 인정</strong></div></div>
+        <div class="step-item"><div class="step-num">4</div><div class="step-text">근속 2년마다 1일 가산, 최대 25일</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="formula-card">
+    <h3>최종 미사용수당 지급 공식</h3>
+    <div class="formula-visual">
+      <div class="fv-chip fv-green">① 누계 차이 (입사일 기준 − 회계연도 기준, 양수만)</div>
+      <span class="fv-op">+</span>
+      <div class="fv-chip fv-blue">② 퇴직연도 회계연도 기준 잔여 연차 (발생 − 사용)</div>
+      <span class="fv-op">=</span>
+      <div class="fv-chip fv-green" style="font-size:14px">최종 지급 일수</div>
+    </div>
+    <div style="margin-top:12px;font-size:13px;color:var(--text2);line-height:1.8">
+      ① 전체 근무기간 누계를 비교하여 입사일 기준이 더 많을 경우에만 그 차이를 추가 지급합니다.<br>
+      ② 퇴직연도 1월 1일에 발생한 연차(전년도 근무 대가)에서 당해 사용분 차감한 잔여일수를 지급합니다.
+    </div>
+  </div>
+  <div class="gcard" style="margin-bottom:12px">
+    <h3><span class="dot"></span>근로기준법 변천사</h3>
+    <div class="law-timeline">
+      <div class="law-era"><div class="era-year">~2002년</div><div class="era-badge era-amber">구법</div><div class="era-desc">월차(1개월 개근 시 1일) + 연차(개근 시 12일) 혼용</div></div>
+      <div class="law-era"><div class="era-year">2003~2018.5.28</div><div class="era-badge era-blue">통합기</div><div class="era-desc">월차 폐지·연차 통합. 1년 미만 월차(최대 11일)를 1년차 15일에서 차감</div></div>
+      <div class="law-era"><div class="era-year">2018.5.29~현재</div><div class="era-badge era-green">현행</div><div class="era-desc">1년 미만 월차 별도 부여 — 15일에서 미차감. 신입사원 최대 26일 사용 가능</div></div>
+    </div>
+  </div>
+  <div class="gcard">
+    <h3><span class="dot"></span>무급휴직 시 출근율 산정</h3>
+    <div class="step-list">
+      <div class="step-item"><div class="step-num">1</div><div class="step-text"><strong>소정근로일</strong> = 월~금 중 한국 법정공휴일(대체·임시공휴일 포함) 제외 일수</div></div>
+      <div class="step-item"><div class="step-num">2</div><div class="step-text"><strong>출근율</strong> = (소정근로일 − 무급휴직 중 소정근로일) / 소정근로일</div></div>
+      <div class="step-item"><div class="step-num">3</div><div class="step-text">출근율 <strong>80% 미만</strong> 시에만 비례 산정, 80% 이상이면 전액 지급</div></div>
+    </div>
+  </div>
+  <div class="note-box">
+    <strong>⚠ 유의사항</strong>
+    만 1년 근무 후 퇴직 시(예: 25.5.2 입사 → 26.5.1 퇴사), 입사기념일(26.5.2)이 퇴직일 이후이므로 1년차 15일 미발생. 1년 미만 월차 최대 11일만 인정. 2·3년차 퇴직도 동일 원칙 적용.
+  </div>
+</div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<div class="page" id="page1">
+  <div class="upload-zone" id="uploadZone"
+    ondragover="event.preventDefault();this.classList.add('drag')"
+    ondragleave="this.classList.remove('drag')"
+    ondrop="handleDrop(event)">
+    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" onchange="handleFile(this.files[0])">
+    <div class="upload-icon">📂</div>
+    <div class="upload-title">퇴사자 명단 파일을 업로드하세요</div>
+    <div class="upload-sub">
+      Excel(.xlsx/.xls) 또는 CSV — 드래그하거나 클릭하여 선택<br>
+      필수: <code>이름</code> <code>입사일</code> <code>퇴사일</code> &nbsp;|&nbsp;
+      선택: <code>사번</code> <code>소속</code> <code>팀명</code> <code>퇴직연도 연차 사용 일수</code> <code>무급휴직 여부(O/X)</code> <code>무급휴직 시작</code> <code>무급휴직 종료</code> <code>비고</code><br>
+      <span style="font-size:12px;color:var(--text3)">사업부·부서·소속 / 팀·팀명 등 유사 컬럼명 자동 인식</span>
+    </div>
+    <button class="template-btn" onclick="event.stopPropagation();downloadTemplate()">⬇ 양식 다운로드</button>
+  </div>
+  <div id="uploadResults" style="display:none">
+    <div class="result-header">
+      <div><h2 id="resultTitle">정산 결과</h2><div class="result-count" id="resultCount"></div></div>
+      <button class="save-btn" onclick="saveToHistory()">누적 내역에 저장</button>
+    </div>
+    <div id="resultCards"></div>
+  </div>
+</div>
+
+<div class="page" id="page2">
+  <div style="background:linear-gradient(135deg,#ede9fe,#dbeafe);border:1px solid #c4b5fd;border-radius:12px;padding:12px 16px;margin-bottom:1rem;font-size:13px;color:#4c1d95;display:flex;align-items:center;gap:10px">
+    <span style="font-size:20px">☁️</span>
+    <div><strong>팀 공유 저장소</strong> — 이 페이지에서 저장한 내역은 같은 링크를 쓰는 팀원 모두에게 실시간 공유됩니다. <span style="opacity:.7">🔄 새로고침으로 최신 내역을 불러오세요.</span></div>
+  </div>
+  <div class="history-stats">
+    <div class="hs-card"><div class="hs-label">총 정산 인원</div><div class="hs-val" id="hTotalPeople">0</div></div>
+    <div class="hs-card"><div class="hs-label">총 정산 일수</div><div class="hs-val green" id="hTotalDays">0</div></div>
+    <div class="hs-card"><div class="hs-label">평균 정산 일수</div><div class="hs-val" id="hAvgDays">0</div></div>
+    <div class="hs-card"><div class="hs-label">정산 배치 수</div><div class="hs-val" id="hBatches">0</div></div>
+  </div>
+  <div class="history-toolbar">
+    <input type="text" id="historySearch" placeholder="이름, 사번, 팀으로 검색..." oninput="renderHistory()">
+    <button class="del-sel-btn" id="delSelBtn" onclick="deleteSelected()">선택 삭제</button>
+    <button id="syncBtn" onclick="renderHistory()" style="padding:8px 14px;border-radius:8px;font-size:12px;font-weight:500;background:var(--surface);border:1px solid #c4b5fd;color:#6d28d9;cursor:pointer;white-space:nowrap">🔄 새로고침</button>
+    <button class="export-btn" onclick="exportHistory()">엑셀 내보내기</button>
+    <button class="clear-btn" onclick="clearHistory()">전체 초기화</button>
+  </div>
+  <div class="history-table-wrap">
+    <table class="htable">
+      <thead><tr><th class="chk"><input type="checkbox" id="checkAll" onchange="toggleAllCheck(this)"></th><th>배치</th><th>이름</th><th>사번</th><th>소속/팀</th><th>입사일</th><th>퇴사일</th><th class="num">입사일기준</th><th class="num">회계연도기준</th><th class="num">퇴직연도잔여</th><th class="num">최종지급</th><th>비고</th></tr></thead>
+      <tbody id="historyBody"></tbody>
+    </table>
+    <div class="empty-state" id="historyEmpty"><div class="ei">📋</div><p>아직 저장된 정산 내역이 없습니다.<br>② 탭에서 파일을 업로드하고 저장하세요.</p></div>
+  </div>
+</div>
+
 <script>
+
 const FIXED_HO=['01-01','03-01','05-05','06-06','08-15','10-03','10-09','12-25'];
 const LUNAR_HO={2000:['01-04','01-05','01-06','05-11','09-11','09-12','09-13'],2001:['01-24','01-25','01-26','05-01','10-01','10-02','10-03'],2002:['02-11','02-12','02-13','05-19','09-20','09-21','09-22'],2003:['02-01','02-02','02-03','05-08','09-10','09-11','09-12'],2004:['01-21','01-22','01-23','05-26','09-27','09-28','09-29'],2005:['02-08','02-09','02-10','05-15','09-17','09-18','09-19'],2006:['01-28','01-29','01-30','05-05','10-05','10-06','10-07'],2007:['02-17','02-18','02-19','05-24','09-24','09-25','09-26'],2008:['02-06','02-07','02-08','05-12','09-13','09-14','09-15'],2009:['01-25','01-26','01-27','05-02','10-02','10-03','10-04'],2010:['02-13','02-14','02-15','05-21','09-21','09-22','09-23'],2011:['02-02','02-03','02-04','05-10','09-11','09-12','09-13'],2012:['01-22','01-23','01-24','05-28','09-29','09-30','10-01'],2013:['02-09','02-10','02-11','05-17','09-18','09-19','09-20'],2014:['01-30','01-31','02-01','05-06','09-07','09-08','09-09'],2015:['02-18','02-19','02-20','05-25','09-26','09-27','09-28'],2016:['02-07','02-08','02-09','05-14','09-14','09-15','09-16'],2017:['01-27','01-28','01-29','05-03','10-03','10-04','10-05'],2018:['02-15','02-16','02-17','05-22','09-23','09-24','09-25'],2019:['02-04','02-05','02-06','05-12','09-12','09-13','09-14'],2020:['01-24','01-25','01-26','04-30','09-30','10-01','10-02'],2021:['02-11','02-12','02-13','05-19','09-20','09-21','09-22'],2022:['01-31','02-01','02-02','05-08','09-09','09-10','09-11'],2023:['01-21','01-22','01-23','05-27','09-28','09-29','09-30'],2024:['02-09','02-10','02-11','05-15','09-16','09-17','09-18'],2025:['01-28','01-29','01-30','05-05','10-05','10-06','10-07'],2026:['02-16','02-17','02-18','05-24','09-24','09-25','09-26'],2027:['02-06','02-07','02-08','05-13','10-14','10-15','10-16'],2028:['01-26','01-27','01-28','05-02','10-02','10-03','10-04'],2029:['02-12','02-13','02-14','05-20','09-21','09-22','09-23'],2030:['02-02','02-03','02-04','05-09','09-11','09-12','09-13']};
 const SUBST_HO={2014:['09-10'],2016:['02-10','03-02'],2017:['01-30','10-06'],2018:['09-26'],2019:['02-07','05-06'],2020:['01-27'],2021:['02-15','09-22'],2022:['03-02'],2023:['01-24','05-29'],2024:['02-12','09-18'],2025:['03-03','05-06','10-08'],2026:['03-02','05-25','09-28']};
@@ -360,7 +481,435 @@ function renderCard(res,idx){
 
 function tog(idx){const pd=document.getElementById('pd'+idx),ti=document.getElementById('ti'+idx);const o=pd.classList.toggle('open');ti.classList.toggle('open',o);}
 
-// ═══ Supabase 연동 설정 ═══
+async function loadHistory(){
+  try{
+    const r=await window.storage.get('leaveHistory',true);
+    return r?JSON.parse(r.value):[];
+  }catch{return[];}
+}
+async function saveHist(h){
+  try{ await window.storage.set('leaveHistory',JSON.stringify(h),true); }
+  catch(e){ console.error('저장 오류:',e); }
+}
+
+async function saveToHistory(){
+  if(!currentResults.length){alert('정산 결과가 없습니다.');return;}
+  const h=await loadHistory();
+  const batchNum=new Set(h.map(r=>r.batchId)).size+1;
+  const batchId=`B${String(batchNum).padStart(3,'0')}`;
+  const now=new Date().toLocaleDateString('ko-KR');
+  currentResults.forEach(res=>h.push({batchId,date:now,name:res.name,empId:res.empId||'',dept:res.dept||'',team:res.team||'',joinDate:fmtD(res.joinDate),retireDate:fmtD(res.retireDate),hTotal:res.hTotal,fTotal:res.fTotal,fRemain:res.fRemain,finalPay:res.finalPay,special:res.special||'',era:res.era,hasU:res.hasU,diff:res.diff,diffAdj:res.diffAdj,fYear:res.fYear,usedLeave:res.usedLeave,hRows:res.hRows,fRows:res.fRows}));
+  await saveHist(h);
+  renderHistory();updateBadge();
+  alert(`${currentResults.length}명 저장 완료 (배치: ${batchId}) — 팀원과 공유됩니다!`);
+}
+
+async function renderHistory(){
+  const h=await loadHistory(),q=(document.getElementById('historySearch').value||'').toLowerCase();
+  const fil=q?h.filter(r=>(r.name+r.empId+r.team+r.dept).toLowerCase().includes(q)):h;
+  const tbody=document.getElementById('historyBody'),empty=document.getElementById('historyEmpty');
+  if(!fil.length){tbody.innerHTML='';empty.style.display='block';}
+  else{
+    empty.style.display='none';
+    tbody.innerHTML=fil.map((r,i)=>{
+      const realIdx=h.indexOf(r);
+      return`<tr>
+        <td class="chk"><input type="checkbox" class="row-chk" data-idx="${realIdx}" onchange="onChkChange()"></td>
+        <td><span class="batch-label">${r.batchId}</span><br><span style="font-size:11px;color:var(--text3)">${r.date}</span></td>
+        <td style="cursor:pointer;color:var(--accent);font-weight:600" onclick="openHistModal(${realIdx})">${r.name}</td>
+        <td style="font-family:var(--mono);font-size:12px">${r.empId||'—'}</td>
+        <td>${[r.dept,r.team].filter(Boolean).join('/')}</td>
+        <td style="font-family:var(--mono);font-size:12px">${r.joinDate}</td>
+        <td style="font-family:var(--mono);font-size:12px">${r.retireDate}</td>
+        <td class="num">${r.hTotal}</td><td class="num">${r.fTotal}</td>
+        <td class="num">${r.fRemain}</td>
+        <td class="num" style="font-weight:600;color:var(--accent)">${r.finalPay}</td>
+        <td style="font-size:12px;color:var(--text2)">${r.special||''}</td>
+      </tr>`;
+    }).join('');
+  }
+  const total=h.length,td=h.reduce((s,r)=>s+r.finalPay,0),bt=new Set(h.map(r=>r.batchId)).size;
+  document.getElementById('hTotalPeople').textContent=total;
+  document.getElementById('hTotalDays').textContent=td;
+  document.getElementById('hAvgDays').textContent=total?Math.round(td/total):0;
+  document.getElementById('hBatches').textContent=bt;
+  updateBadge();
+}
+function toggleAllCheck(el){
+  document.querySelectorAll('.row-chk').forEach(c=>c.checked=el.checked);
+  onChkChange();
+}
+function onChkChange(){
+  const n=document.querySelectorAll('.row-chk:checked').length;
+  const btn=document.getElementById('delSelBtn');
+  btn.style.display=n>0?'inline-flex':'none';
+  btn.textContent=`선택 ${n}명 삭제`;
+  document.getElementById('checkAll').checked=n>0&&n===document.querySelectorAll('.row-chk').length;
+}
+async function deleteSelected(){
+  const idxs=[...document.querySelectorAll('.row-chk:checked')].map(c=>parseInt(c.dataset.idx)).sort((a,b)=>b-a);
+  if(!idxs.length)return;
+  if(!confirm(`선택한 ${idxs.length}명의 정산 내역을 삭제하시겠습니까?`))return;
+  const h=await loadHistory();
+  idxs.forEach(i=>h.splice(i,1));
+  await saveHist(h);renderHistory();
+}
+async function updateBadge(){
+  const h=await loadHistory();
+  document.getElementById('totalBadge').textContent=`누적 ${h.length}명`;
+}
+async function clearHistory(){
+  if(!confirm('모든 누적 내역을 초기화하시겠습니까?'))return;
+  try{ await window.storage.delete('leaveHistory',true); }catch{}
+  renderHistory();
+}
+
+async function openHistModal(idx){
+  const h=await loadHistory(),r=h[idx];
+  if(!r)return;
+  const eraLabel={'pre2003':'구법','mid':'통합기','post2018':'현행'}[r.era]||'';
+  const hRows=(r.hRows||[]).map(row=>`<tr><td>${row.period}</td><td style="font-size:11px">${row.earnDate||'—'}</td><td style="text-align:right;font-family:monospace">${row.days}</td><td style="text-align:right;font-family:monospace;color:var(--accent);font-weight:600">${row._net!==undefined?row._net:row.days}</td><td style="font-size:11px;color:var(--text3)">${row.note||''}</td></tr>`).join('');
+  const fRows=(r.fRows||[]).map(row=>`<tr><td>${row.year}년</td><td style="font-size:11px">${row.earnDate}</td><td style="text-align:right;font-family:monospace">${row.ten}년차</td><td style="text-align:right;font-family:monospace;color:var(--accent);font-weight:600">${row.days}</td><td style="font-size:11px;color:var(--text3)">${row.note||''}</td></tr>`).join('');
+  const hTotal=r.hTotal,fTotal=r.fTotal;
+  document.getElementById('histModalTitle').textContent=`${r.name} 정산 상세 내역`;
+  document.getElementById('histModalBody').innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
+      <div class="detail-metric"><div class="dm-label">입사일 기준 누계</div><div class="dm-val">${hTotal}일</div></div>
+      <div class="detail-metric"><div class="dm-label">회계연도 기준 누계</div><div class="dm-val">${fTotal}일</div></div>
+      <div class="detail-metric"><div class="dm-label">퇴직연도 발생</div><div class="dm-val">${r.fYear||0}일</div></div>
+      <div class="detail-metric"><div class="dm-label">퇴직연도 사용</div><div class="dm-val">${r.usedLeave||0}일</div></div>
+      <div class="detail-metric"><div class="dm-label">퇴직연도 잔여 (②)</div><div class="dm-val">${r.fRemain}일</div></div>
+      <div class="detail-metric" style="background:var(--accent-l)"><div class="dm-label">최종 지급 일수</div><div class="dm-val green">${r.finalPay}일</div></div>
+    </div>
+    <div class="formula-mini" style="margin-bottom:16px">
+      ${(r.diff||0)>0?`<span class="fm-chip" style="background:var(--accent-l);color:var(--accent)">① +${r.diffAdj||0}일</span>`:`<span class="fm-chip" style="background:var(--surface2);color:var(--text2)">① 0일</span>`}
+      <span style="color:var(--text3)">+</span>
+      <span class="fm-chip" style="background:var(--blue-l);color:var(--blue)">② ${r.fRemain}일</span>
+      <span style="color:var(--text3)">=</span>
+      <strong style="color:var(--accent)">${r.finalPay}일</strong>
+      <span style="font-size:11px;color:var(--text3);margin-left:8px">입사일기준 ${hTotal}일 − 회계연도기준 ${fTotal}일 = ${r.diff||0}일 ${(r.diff||0)>0?'(추가)':'(추가없음)'}${(r.usedRemainder||0)>0?` / 회계연도 초과 사용 ${r.usedRemainder}일 → ①에서 추가 차감`:''} | 법령: ${eraLabel}${r.hasU?' | 무급휴직':''}</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div><h4 style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">입사일 기준 발생 내역</h4>
+        <table class="dtable"><thead><tr><th>구분</th><th>발생일</th><th class="num">발생</th><th class="num">실지급</th><th>비고</th></tr></thead>
+        <tbody>${hRows||'<tr><td colspan="5" style="color:var(--text3);text-align:center">데이터 없음</td></tr>'}</tbody>
+        <tfoot><tr><td colspan="3">합계</td><td class="num">${hTotal}</td><td></td></tr></tfoot></table>
+      </div>
+      <div><h4 style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">회계연도 기준 발생 내역</h4>
+        <table class="dtable"><thead><tr><th>연도</th><th>발생일</th><th class="num">근속</th><th class="num">발생</th><th>비고</th></tr></thead>
+        <tbody>${fRows||'<tr><td colspan="5" style="color:var(--text3);text-align:center">데이터 없음</td></tr>'}</tbody>
+        <tfoot><tr><td colspan="3">합계</td><td class="num">${fTotal}</td><td></td></tr></tfoot></table>
+      </div>
+    </div>`;
+  document.getElementById('histModalOverlay').classList.add('open');
+}
+function closeHistModal(e){if(e.target===document.getElementById('histModalOverlay'))document.getElementById('histModalOverlay').classList.remove('open');}
+
+async function exportHistory(){
+  const h=await loadHistory();
+  if(!h.length){alert('저장된 내역이 없습니다.');return;}
+  try{
+    const wb=XLSX.utils.book_new();
+    // 시트1: 요약
+    const summary=h.map(r=>({'배치ID':r.batchId,'저장일':r.date,'이름':r.name,'사번':r.empId,'소속':r.dept,'팀':r.team,'입사일':r.joinDate,'퇴사일':r.retireDate,'적용법령':({'pre2003':'구법','mid':'통합기','post2018':'현행'}[r.era]||''),'입사일기준누계':r.hTotal,'회계연도기준누계':r.fTotal,'누계차이(①)':r.diffAdj||0,'퇴직연도발생':r.fYear||0,'퇴직연도사용':r.usedLeave||0,'퇴직연도잔여(②)':r.fRemain,'최종지급일수':r.finalPay,'비고':r.special}));
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(summary), '정산요약');
+    // 시트2: 입사일기준 상세
+    const hDetail=[];
+    h.forEach(r=>{
+      (r.hRows||[]).forEach(row=>{
+        hDetail.push({'이름':r.name,'사번':r.empId,'구분':row.period,'발생일':row.earnDate||'','산정기간':row.range||'','산정근거':row.basis||'','발생일수':row.days,'실지급':row._net!==undefined?row._net:row.days,'비고':row.note||''});
+      });
+    });
+    if(hDetail.length)XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(hDetail), '입사일기준상세');
+    // 시트3: 회계연도기준 상세
+    const fDetail=[];
+    h.forEach(r=>{
+      (r.fRows||[]).forEach(row=>{
+        fDetail.push({'이름':r.name,'사번':r.empId,'발생연도':row.year+'년','발생일':row.earnDate||'','산정대상기간':row.prevPeriod||'','근속':row.ten+'년차','발생일수':row.days,'비고':row.note||''});
+      });
+    });
+    if(fDetail.length)XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(fDetail), '회계연도기준상세');
+    XLSX.writeFile(wb,'연차정산_누적내역.xlsx');
+  }catch(e){alert('엑셀 내보내기 오류: '+e.message);}
+}
+function downloadTemplate(){
+  const h=[['이름','사번','소속','팀명','생년월일','입사일','퇴사일','퇴직연도 연차 사용 일수','무급휴직 여부','무급휴직 시작','무급휴직 종료','비고']];
+  const s1=['이혜린','CW2024143','커넥트웨이브','HRM팀','1995-01-27','2014-05-07','2026-08-07',5,'X','','',''];
+  const s2=['김커넥','CW2024555','커넥트웨이브','개발팀','1987-05-21','2020-08-30','2026-07-01',10,'O','2024-05-06','2025-02-01','육아휴직'];
+  const ws=XLSX.utils.aoa_to_sheet([...h,s1,s2]);
+  const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,'퇴사자명단',ws);XLSX.writeFile(wb,'퇴사자명단_양식.xlsx');
+}
+function showPage(n){
+  document.querySelectorAll('.page').forEach((p,i)=>p.classList.toggle('active',i===n));
+  document.querySelectorAll('.nav-tab').forEach((t,i)=>t.classList.toggle('active',i===n));
+  if(n===2)renderHistory();
+}
+renderHistory();
+</script>
+
+<div class="modal-overlay" id="histModalOverlay" onclick="closeHistModal(event)">
+  <div class="modal" id="histModal">
+    <button class="modal-close" onclick="document.getElementById('histModalOverlay').classList.remove('open')">✕</button>
+    <div class="modal-title" id="histModalTitle"></div>
+    <div id="histModalBody"></div>
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const FIXED_HO=['01-01','03-01','05-05','06-06','08-15','10-03','10-09','12-25'];
+const LUNAR_HO={2000:['01-04','01-05','01-06','05-11','09-11','09-12','09-13'],2001:['01-24','01-25','01-26','05-01','10-01','10-02','10-03'],2002:['02-11','02-12','02-13','05-19','09-20','09-21','09-22'],2003:['02-01','02-02','02-03','05-08','09-10','09-11','09-12'],2004:['01-21','01-22','01-23','05-26','09-27','09-28','09-29'],2005:['02-08','02-09','02-10','05-15','09-17','09-18','09-19'],2006:['01-28','01-29','01-30','05-05','10-05','10-06','10-07'],2007:['02-17','02-18','02-19','05-24','09-24','09-25','09-26'],2008:['02-06','02-07','02-08','05-12','09-13','09-14','09-15'],2009:['01-25','01-26','01-27','05-02','10-02','10-03','10-04'],2010:['02-13','02-14','02-15','05-21','09-21','09-22','09-23'],2011:['02-02','02-03','02-04','05-10','09-11','09-12','09-13'],2012:['01-22','01-23','01-24','05-28','09-29','09-30','10-01'],2013:['02-09','02-10','02-11','05-17','09-18','09-19','09-20'],2014:['01-30','01-31','02-01','05-06','09-07','09-08','09-09'],2015:['02-18','02-19','02-20','05-25','09-26','09-27','09-28'],2016:['02-07','02-08','02-09','05-14','09-14','09-15','09-16'],2017:['01-27','01-28','01-29','05-03','10-03','10-04','10-05'],2018:['02-15','02-16','02-17','05-22','09-23','09-24','09-25'],2019:['02-04','02-05','02-06','05-12','09-12','09-13','09-14'],2020:['01-24','01-25','01-26','04-30','09-30','10-01','10-02'],2021:['02-11','02-12','02-13','05-19','09-20','09-21','09-22'],2022:['01-31','02-01','02-02','05-08','09-09','09-10','09-11'],2023:['01-21','01-22','01-23','05-27','09-28','09-29','09-30'],2024:['02-09','02-10','02-11','05-15','09-16','09-17','09-18'],2025:['01-28','01-29','01-30','05-05','10-05','10-06','10-07'],2026:['02-16','02-17','02-18','05-24','09-24','09-25','09-26'],2027:['02-06','02-07','02-08','05-13','10-14','10-15','10-16'],2028:['01-26','01-27','01-28','05-02','10-02','10-03','10-04'],2029:['02-12','02-13','02-14','05-20','09-21','09-22','09-23'],2030:['02-02','02-03','02-04','05-09','09-11','09-12','09-13']};
+const SUBST_HO={2014:['09-10'],2016:['02-10','03-02'],2017:['01-30','10-06'],2018:['09-26'],2019:['02-07','05-06'],2020:['01-27'],2021:['02-15','09-22'],2022:['03-02'],2023:['01-24','05-29'],2024:['02-12','09-18'],2025:['03-03','05-06','10-08'],2026:['03-02','05-25','09-28']};
+const TEMP_HO={2020:['08-17'],2023:['10-02'],2024:['02-09']};
+const _hC={};
+function getHolidays(y){if(!_hC[y]){const s=new Set();FIXED_HO.forEach(d=>s.add(`${y}-${d}`));(LUNAR_HO[y]||[]).forEach(d=>s.add(`${y}-${d}`));(SUBST_HO[y]||[]).forEach(d=>s.add(`${y}-${d}`));(TEMP_HO[y]||[]).forEach(d=>s.add(`${y}-${d}`));_hC[y]=s;}return _hC[y];}
+function addD(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
+function dStr(d){if(!d||isNaN(d.getTime()))return'';return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function fmtD(d){if(!d||isNaN(d.getTime()))return'';return`${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;}
+function isWorkday(d){const w=d.getDay();if(w===0||w===6)return false;return!getHolidays(d.getFullYear()).has(dStr(d));}
+function workdaysInRange(s,e){let c=0,cur=new Date(s);const end=new Date(e);while(cur<=end){if(isWorkday(cur))c++;cur=addD(cur,1);}return c;}
+function unpaidWD(s,e,periods){let t=0;for(const p of periods){const ps=new Date(p.start),pe=new Date(p.end);const os=ps<s?new Date(s):new Date(ps),oe=pe>e?new Date(e):new Date(pe);if(os<=oe)t+=workdaysInRange(os,oe);}return t;}
+function calcAtt(s,e,periods,hasU){const 소정=workdaysInRange(s,e);const 무급=hasU?unpaidWD(s,e,periods):0;const 출근=소정-무급;return{소정,무급,출근,율:소정>0?출근/소정:1};}
+function annualBase(yr){return yr===1?15:Math.min(15+Math.floor((yr-1)/2),25);}
+function calcLeave(base,att,hasU){if(hasU&&att.율<0.8)return{days:Math.round(base*att.출근/att.소정),prorated:true,att,base};return{days:base,prorated:false,att,base};}
+function getLawEra(jd){const y=jd.getFullYear(),m=jd.getMonth()+1,d=jd.getDate();if(y<2003)return'pre2003';if(y>2018||(y===2018&&(m>5||(m===5&&d>=29))))return'post2018';return'mid';}
+
+function hireBasis(jd,rd,periods,era,hasU){
+  const rows=[],rms=rd.getTime();
+  function countMC(){let c=0;for(let m=1;m<=11;m++){const ed=new Date(jd);ed.setMonth(ed.getMonth()+m);if(ed.getTime()>rms)break;c++;}return c;}
+  function annRow(yr){
+    const ed=new Date(jd);ed.setFullYear(ed.getFullYear()+yr);
+    if(ed.getTime()>=rms)return null;
+    const ps=new Date(jd);ps.setFullYear(ps.getFullYear()+(yr-1));
+    const pe=addD(ed,-1);
+    const att=calcAtt(ps,pe,periods,hasU);
+    const base=era==='pre2003'?12:annualBase(yr);
+    const r=calcLeave(base,att,hasU);
+    let note='';
+    if(r.prorated)note=`출근율 ${(att.율*100).toFixed(1)}% (소정 ${att.소정}일, 무급 ${att.무급}일) → 비례`;
+    else if(hasU)note=`출근율 ${(att.율*100).toFixed(1)}%`;
+    return{period:`${yr}년차`,earnDate:fmtD(ed),range:`${fmtD(ps)}~${fmtD(pe)}`,basis:yr===1?'15일':`${base}일`,days:r.days,_net:undefined,note};
+  }
+  const fa=new Date(jd);fa.setFullYear(fa.getFullYear()+1);
+  if(era==='pre2003'){
+    const mc=countMC();
+    if(mc>0)rows.push({period:'월차',earnDate:null,range:`${fmtD(jd)}~${fmtD(addD(fa,-1))}`,basis:'구법 월차',days:mc,note:`${mc}개월분`});
+    let yr=1;while(true){const r=annRow(yr);if(!r)break;rows.push(r);yr++;if(yr>50)break;}
+    return rows;
+  }
+  if(era==='mid'){
+    const mc=countMC(),y1=annRow(1);
+    if(mc>0){const d=y1?Math.min(mc,y1.days):0;rows.push({period:'1년미만(월차)',earnDate:null,range:`${fmtD(jd)}~${fmtD(addD(fa,-1))}`,basis:'월 1일',days:mc,note:y1?`1년차에서 ${d}일 차감`:''});}
+    if(y1){const d=Math.min(mc,y1.days),net=Math.max(0,y1.days-d);rows.push({...y1,note:`발생 ${y1.days}일 − 차감 ${d}일 = 실지급 ${net}일`+(y1.note?` / ${y1.note}`:''),_net:net});}
+    let yr=2;while(true){const r=annRow(yr);if(!r)break;rows.push(r);yr++;if(yr>50)break;}
+    return rows;
+  }
+  const mc=countMC();
+  if(mc>0)rows.push({period:'1년미만(월차)',earnDate:null,range:`${fmtD(jd)}~${fmtD(addD(fa,-1))}`,basis:'월 1일 별도부여',days:mc,note:`${mc}개월분`});
+  let yr=1;while(true){const r=annRow(yr);if(!r)break;rows.push(r);yr++;if(yr>50)break;}
+  return rows;
+}
+
+function fiscalBasis(jd,rd,periods,era,hasU){
+  const rows=[],jy=jd.getFullYear(),ry=rd.getFullYear();
+  const rms=rd.getTime();
+
+  // ── 1년 미만 월차: 회계연도 기준에도 입사 후 1개월마다 1일 발생 ──
+  // (1년 미만 구간은 회계연도/입사일 기준 모두 동일하게 월 1일 발생)
+  let mc=0;
+  for(let m=1;m<=11;m++){
+    const ed=new Date(jd);ed.setMonth(ed.getMonth()+m);
+    if(ed.getTime()>rms)break;
+    mc++;
+  }
+  const firstAnniv=new Date(jd);firstAnniv.setFullYear(firstAnniv.getFullYear()+1);
+  if(mc>0){
+    rows.push({
+      year:jy, earnDate:'(월별발생)',
+      prevPeriod:`${fmtD(jd)}~${fmtD(addD(firstAnniv,-1))}`,
+      ten:0, days:mc,
+      note:`1년 미만 월차 ${mc}개월분 (입사일 기준 동일 적용)`
+    });
+  }
+
+  // ── 2년차 이후: 매년 1/1 발생 ──
+  for(let y=jy+1;y<=ry;y++){
+    const ps=new Date(y-1,0,1),pe=new Date(y-1,11,31);
+    if(jd>pe)continue;
+    const ten=y-jy,isFirst=(y-1===jy),entMid=(jd.getMonth()>0||jd.getDate()>1);
+    const base=era==='pre2003'?12:annualBase(ten);
+    let days,note='';
+    if(isFirst&&entMid){
+      // 입사 첫 해: 전년도 소정근로일 대비 입사일~12/31 비례
+      const 전년소정=workdaysInRange(ps,pe);const 입사후소정=workdaysInRange(jd,pe);
+      const 무급=hasU?unpaidWD(jd,pe,periods):0;const 출근=입사후소정-무급;const 율=입사후소정>0?출근/입사후소정:1;
+      if(hasU&&율<0.8){days=Math.round(15*출근/전년소정);note=`첫해비례+출근율 ${(율*100).toFixed(1)}%`;}
+      else{days=Math.round(15*입사후소정/전년소정);note=`첫해비례 (${입사후소정}/${전년소정}일)${hasU?` 출근율 ${(율*100).toFixed(1)}%`:''}`;}
+    }else{
+      const att=calcAtt(ps,pe,periods,hasU);const r=calcLeave(base,att,hasU);days=r.days;
+      if(r.prorated)note=`출근율 ${(att.율*100).toFixed(1)}% (소정 ${att.소정}일, 무급 ${att.무급}일) → 비례`;
+      else if(hasU)note=`출근율 ${(att.율*100).toFixed(1)}%`;
+    }
+    rows.push({year:y,earnDate:fmtD(new Date(y,0,1)),prevPeriod:`${y-1}.01.01~${y-1}.12.31`,ten,days,note});
+  }
+  return rows;
+}
+
+function sumHire(rows){return rows.reduce((s,r)=>s+(r._net!==undefined?r._net:r.days),0);}
+
+function calcPerson(p){
+  const{joinDate:jd,retireDate:rd,usedLeave=0,unpaidPeriods:periods=[],name,empId,dept,team,special}=p;
+  const era=getLawEra(jd),hasU=periods.length>0;
+  const hRows=hireBasis(jd,rd,periods,era,hasU);
+  const fRows=fiscalBasis(jd,rd,periods,era,hasU);
+  const hTotal=sumHire(hRows),fTotal=fRows.reduce((s,r)=>s+r.days,0);
+
+  const ry=rd.getFullYear();
+  // 퇴직연도에 해당하는 모든 row 합산 (월차 row + 1/1 발생 row 동시 존재 가능)
+  const fYear=fRows.filter(r=>r.year===ry).reduce((s,r)=>s+r.days,0);
+
+  // 사용 연차 배분 로직
+  // 회계연도 기준 퇴직연도 발생분에서 먼저 차감, 부족하면 ① 누계차이에서 추가 차감
+  const fRemain=Math.max(0,fYear-usedLeave);           // 회계연도 잔여
+  const usedFromFiscal=Math.min(usedLeave,fYear);       // 회계연도에서 차감된 사용량
+  const usedRemainder=usedLeave-usedFromFiscal;         // 회계연도 발생분으로 못 뺀 사용량
+
+  const diff=hTotal-fTotal;
+  // ① 누계차이: 입사일 기준이 더 많은 만큼에서, 회계연도 잔여로 처리 못한 사용분 추가 차감
+  const diffAdj=Math.max(0,diff-usedRemainder);
+
+  // 최종 지급 = ① (조정 후) + ②
+  const finalPay=diffAdj+fRemain;
+
+  return{name,empId,dept,team,special,joinDate:jd,retireDate:rd,era,hTotal,fTotal,diff,diffAdj,fYear,usedLeave,fRemain,usedRemainder,finalPay,hRows,fRows,hasU,periods};
+}
+
+// ── 파일 파싱 (컬럼명 유연 대응) ──
+function parseDate(v){
+  if(v===null||v===undefined||v==='')return null;
+  if(v instanceof Date){return isNaN(v.getTime())?null:new Date(v.getFullYear(),v.getMonth(),v.getDate());}
+  if(typeof v==='number'&&!isNaN(v)&&v>1000){const d=new Date((v-25569)*86400000);return new Date(d.getFullYear(),d.getMonth(),d.getDate());}
+  const s=String(v).trim();
+  if(!s||s==='NaT'||s==='null'||s==='undefined')return null;
+  const m=s.match(/(\d{4})[-./년](\d{1,2})[-./월]?(\d{1,2})/);
+  if(m){const d=new Date(parseInt(m[1]),parseInt(m[2])-1,parseInt(m[3]));if(!isNaN(d.getTime()))return d;}
+  const direct=new Date(s);
+  return!isNaN(direct.getTime())?new Date(direct.getFullYear(),direct.getMonth(),direct.getDate()):null;
+}
+
+function parseRow(row){
+  const norm=s=>String(s||'').trim().replace(/\s+/g,'');
+  const get=keys=>{
+    for(const k of keys){
+      const nk=norm(k);
+      const found=Object.keys(row).find(rk=>norm(rk)===nk);
+      if(found!==undefined&&row[found]!==undefined&&row[found]!==null&&row[found]!=='')return row[found];
+    }
+    return null;
+  };
+  const name=get(['이름','성명','Name'])||'';
+  const empId=get(['사번','직원번호','EmpId'])||'';
+  const dept=get(['소속','사업부','부서','Dept'])||'';       // 소속·사업부·부서 모두 허용
+  const team=get(['팀명','팀','Team'])||'';                  // 팀명·팀 모두 허용
+  const joinDate=parseDate(get(['입사일','입사일자','JoinDate']));
+  const retireDate=parseDate(get(['퇴사일','퇴직일','퇴사일자','RetireDate']));
+  const usedLeave=parseInt(get(['퇴직연도연차사용일수','퇴직연도사용연차','연차사용일수','사용연차','UsedLeave']))||0;
+  const special=get(['비고','특이사항','Note','Remark'])||'';
+  const unpaidPeriods=[];
+  // 형식A: 무급휴직여부(O/X) + 단일 시작/종료
+  const yn=norm(String(get(['무급휴직여부','무급여부'])||'')).toUpperCase();
+  if(yn==='O'||yn==='Y'||yn==='예'){
+    const s=parseDate(get(['무급휴직시작','무급휴직시작일','무급시작']));
+    const e=parseDate(get(['무급휴직종료','무급휴직종료일','무급종료']));
+    if(s&&e)unpaidPeriods.push({start:dStr(s),end:dStr(e)});
+  }
+  // 형식B: 무급휴직시작1~5 (복수)
+  for(let i=1;i<=5;i++){
+    const s=parseDate(get([`무급휴직시작${i}`,`무급시작${i}`]));
+    const e=parseDate(get([`무급휴직종료${i}`,`무급종료${i}`]));
+    if(s&&e)unpaidPeriods.push({start:dStr(s),end:dStr(e)});
+  }
+  return{name,empId,dept,team,joinDate,retireDate,usedLeave,unpaidPeriods,special};
+}
+
+function handleDrop(ev){ev.preventDefault();document.getElementById('uploadZone').classList.remove('drag');const f=ev.dataTransfer.files[0];if(f)handleFile(f);}
+function handleFile(file){
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{const wb=XLSX.read(e.target.result,{type:'binary',cellDates:true});const ws=wb.Sheets[wb.SheetNames[0]];processData(XLSX.utils.sheet_to_json(ws,{raw:false,defval:''}));}
+    catch(err){alert('파일 파싱 오류: '+err.message);}
+  };
+  reader.readAsBinaryString(file);
+}
+
+function processData(data){
+  currentResults=[];
+  const cards=document.getElementById('resultCards');cards.innerHTML='';let errCount=0;
+  data.forEach((row,idx)=>{
+    const p=parseRow(row);
+    if(!p.name||!p.joinDate||!p.retireDate){
+      errCount++;
+      const miss=[!p.name&&'이름',!p.joinDate&&'입사일',!p.retireDate&&'퇴사일'].filter(Boolean);
+      cards.innerHTML+=`<div class="err-card">⚠ ${idx+2}행: ${miss.join(', ')} 누락 또는 날짜 형식 오류 (이름: ${p.name||'없음'})</div>`;
+      return;
+    }
+    if(p.retireDate<=p.joinDate){errCount++;cards.innerHTML+=`<div class="err-card">⚠ ${p.name}: 퇴사일이 입사일보다 빠릅니다.</div>`;return;}
+    try{const res=calcPerson(p);currentResults.push(res);cards.innerHTML+=renderCard(res,currentResults.length-1);}
+    catch(err){errCount++;cards.innerHTML+=`<div class="err-card">⚠ ${p.name} 계산 오류: ${err.message}</div>`;}
+  });
+  const total=currentResults.length;
+  document.getElementById('resultTitle').textContent=`정산 결과 (${total}명)`;
+  document.getElementById('resultCount').textContent=`처리 완료: ${total}명${errCount?` | 오류: ${errCount}건`:''}`;
+  document.getElementById('uploadResults').style.display='block';
+}
+
+function renderCard(res,idx){
+  const av=res.name?res.name.slice(0,2):'??';
+  const eraLabel={'pre2003':'구법','mid':'통합기','post2018':'현행'}[res.era];
+  const eraColor={'pre2003':'pc-amber','mid':'pc-blue','post2018':'pc-green'}[res.era];
+  const hTr=res.hRows.map(r=>`<tr><td>${r.period}</td><td style="font-size:11px">${r.earnDate||'—'}</td><td class="num">${r.days}</td><td class="num" style="color:var(--accent);font-weight:500">${r._net!==undefined?r._net:r.days}</td><td style="font-size:11px;color:var(--text3)">${r.note||''}</td></tr>`).join('');
+  const fTr=res.fRows.map(r=>`<tr><td>${r.year}년</td><td style="font-size:11px">${r.earnDate}</td><td class="num">${r.ten}년차</td><td class="num" style="color:var(--accent);font-weight:500">${r.days}</td><td style="font-size:11px;color:var(--text3)">${r.note||''}</td></tr>`).join('');
+  return`<div class="person-card">
+  <div class="person-header" onclick="tog(${idx})">
+    <div class="person-avatar">${av}</div>
+    <div class="person-info">
+      <div class="person-name">${res.name}${res.empId?` <span style="font-size:12px;color:var(--text3);font-weight:400">${res.empId}</span>`:''}${res.special?`<span class="special-tag">${res.special}</span>`:''}</div>
+      <div class="person-meta">${[res.dept,res.team].filter(Boolean).join(' · ')||'—'} | 입사 ${fmtD(res.joinDate)} · 퇴사 ${fmtD(res.retireDate)}</div>
+    </div>
+    <div class="person-chips">
+      <span class="p-chip ${eraColor}">${eraLabel}</span>
+      ${res.hasU?'<span class="p-chip pc-amber">무급휴직</span>':''}
+      <span class="p-days">${res.finalPay}일</span>
+    </div>
+    <span class="toggle-icon" id="ti${idx}">▼</span>
+  </div>
+  <div class="person-detail" id="pd${idx}">
+    <div class="detail-grid">
+      <div class="detail-metric"><div class="dm-label">입사일 기준 누계</div><div class="dm-val">${res.hTotal}일</div></div>
+      <div class="detail-metric"><div class="dm-label">회계연도 기준 누계</div><div class="dm-val">${res.fTotal}일</div></div>
+      <div class="detail-metric"><div class="dm-label">퇴직연도 발생 (회계연도)</div><div class="dm-val">${res.fYear}일</div></div>
+      <div class="detail-metric"><div class="dm-label">퇴직연도 사용</div><div class="dm-val">${res.usedLeave}일</div></div>
+      <div class="detail-metric"><div class="dm-label">퇴직연도 잔여 (②)</div><div class="dm-val">${res.fRemain}일</div></div>
+      <div class="detail-metric" style="background:var(--accent-l)"><div class="dm-label">최종 지급 일수</div><div class="dm-val green">${res.finalPay}일</div></div>
+    </div>
+    <div class="formula-mini">
+      ${res.diff>0?`<span class="fm-chip" style="background:var(--accent-l);color:var(--accent)">① +${res.diffAdj}일</span>`:`<span class="fm-chip" style="background:var(--surface2);color:var(--text2)">① 0일</span>`}
+      <span style="color:var(--text3)">+</span>
+      <span class="fm-chip" style="background:var(--blue-l);color:var(--blue)">② ${res.fRemain}일</span>
+      <span style="color:var(--text3)">=</span>
+      <strong style="color:var(--accent)">${res.finalPay}일</strong>
+      <span style="font-size:11px;color:var(--text3);margin-left:8px">입사일기준 ${res.hTotal}일 − 회계연도기준 ${res.fTotal}일 = ${res.diff}일 ${res.diff>0?'(추가)':'(추가없음)'}${res.usedRemainder>0?` / 회계연도 초과 사용 ${res.usedRemainder}일 → ①에서 추가 차감`:''}</span>
+    </div>
+    <div class="detail-tables">
+      <div class="detail-table-wrap"><h4>입사일 기준</h4><table class="dtable"><thead><tr><th>구분</th><th>발생일</th><th class="num">발생</th><th class="num">실지급</th><th>비고</th></tr></thead><tbody>${hTr}</tbody><tfoot><tr><td colspan="3">합계</td><td class="num">${res.hTotal}</td><td></td></tr></tfoot></table></div>
+      <div class="detail-table-wrap"><h4>회계연도 기준</h4><table class="dtable"><thead><tr><th>연도</th><th>발생일</th><th class="num">근속</th><th class="num">발생</th><th>비고</th></tr></thead><tbody>${fTr}</tbody><tfoot><tr><td colspan="3">합계</td><td class="num">${res.fTotal}</td><td></td></tr></tfoot></table></div>
+    </div>
+  </div>
+</div>`;
+}
+
+function tog(idx){const pd=document.getElementById('pd'+idx),ti=document.getElementById('ti'+idx);const o=pd.classList.toggle('open');ti.classList.toggle('open',o);}
+
 const SUPABASE_URL = 'https://wvolctqklbmmlzosexel.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_xRdm-EvBqyln-ZLp0A6vTA_ghRiKtzT';
 
@@ -380,33 +929,23 @@ function sbFetch(method, path, body) {
   });
 }
 
+
 async function loadHistory() {
   try {
     var rows = await sbFetch('GET', 'leave_settlements?order=id.asc&select=*');
     return rows.map(function(r) {
       return {
-        batchId: r.batch_id || '',
-        date: r.saved_date || '',
-        name: r.name || '',
-        empId: r.emp_id || '',
-        dept: r.dept || '',
-        team: r.team || '',
-        joinDate: r.join_date || '',
-        retireDate: r.retire_date || '',
-        era: r.era || '',
-        hasU: r.has_unpaid || false,
-        hTotal: r.h_total || 0,
-        fTotal: r.f_total || 0,
-        diffAdj: r.diff_adj || 0,
-        fYear: r.f_year || 0,
-        usedLeave: r.used_leave || 0,
-        fRemain: r.f_remain || 0,
-        usedRemainder: r.used_remainder || 0,
-        finalPay: r.final_pay || 0,
-        special: r.special || '',
-        diff: r.diff || 0,
-        hRows: r.h_rows || [],
-        fRows: r.f_rows || [],
+        batchId: r.batch_id||'', date: r.saved_date||'',
+        name: r.name||'', empId: r.emp_id||'',
+        dept: r.dept||'', team: r.team||'',
+        joinDate: r.join_date||'', retireDate: r.retire_date||'',
+        era: r.era||'', hasU: r.has_unpaid||false,
+        hTotal: r.h_total||0, fTotal: r.f_total||0,
+        diffAdj: r.diff_adj||0, fYear: r.f_year||0,
+        usedLeave: r.used_leave||0, fRemain: r.f_remain||0,
+        usedRemainder: r.used_remainder||0, finalPay: r.final_pay||0,
+        special: r.special||'', diff: r.diff||0,
+        hRows: r.h_rows||[], fRows: r.f_rows||[],
         _dbId: r.id
       };
     });
@@ -423,58 +962,41 @@ async function saveToHistory() {
     var nextNum = batchNums.length > 0 ? Math.max.apply(null, batchNums) + 1 : 1;
     var batchId = 'B' + String(nextNum).padStart(3, '0');
     var today = new Date().toLocaleDateString('ko-KR');
-
     var rows = currentResults.map(function(res) {
       return {
-        batch_id: batchId,
-        saved_date: today,
-        name: res.name,
-        emp_id: res.empId || '',
-        dept: res.dept || '',
-        team: res.team || '',
-        join_date: fmtD(res.joinDate),
-        retire_date: fmtD(res.retireDate),
-        era: res.era,
-        has_unpaid: res.hasU,
-        h_total: res.hTotal,
-        f_total: res.fTotal,
-        diff_adj: res.diffAdj,
-        f_year: res.fYear,
-        used_leave: res.usedLeave,
-        f_remain: res.fRemain,
-        used_remainder: res.usedRemainder,
-        final_pay: res.finalPay,
-        special: res.special || '',
-        diff: res.diff,
-        h_rows: res.hRows,
-        f_rows: res.fRows
+        batch_id: batchId, saved_date: today,
+        name: res.name, emp_id: res.empId||'',
+        dept: res.dept||'', team: res.team||'',
+        join_date: fmtD(res.joinDate), retire_date: fmtD(res.retireDate),
+        era: res.era, has_unpaid: res.hasU,
+        h_total: res.hTotal, f_total: res.fTotal,
+        diff_adj: res.diffAdj, f_year: res.fYear,
+        used_leave: res.usedLeave, f_remain: res.fRemain,
+        used_remainder: res.usedRemainder, final_pay: res.finalPay,
+        special: res.special||'', diff: res.diff,
+        h_rows: res.hRows, f_rows: res.fRows
       };
     });
-
     await sbFetch('POST', 'leave_settlements', rows);
     alert(currentResults.length + '명 저장 완료 (배치: ' + batchId + ') ☁️ 팀원과 공유됩니다!');
     renderHistory(); updateBadge();
-  } catch(e) {
-    alert('저장 오류: ' + e.message);
-  } finally {
-    btn.disabled = false; btn.textContent = '💾 누적 내역에 저장 (팀 공유)';
-  }
+  } catch(e) { alert('저장 오류: ' + e.message); }
+  finally { btn.disabled = false; btn.textContent = '💾 누적 내역에 저장 (팀 공유)'; }
 }
 
 async function renderHistory() {
   var tbody = document.getElementById('historyBody');
   var empty = document.getElementById('historyEmpty');
+  if (!tbody) return;
   tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:20px;color:var(--text3)">⏳ 불러오는 중...</td></tr>';
   empty.style.display = 'none';
-
   var h = await loadHistory();
   var q = (document.getElementById('historySearch').value||'').toLowerCase();
   var fil = q ? h.filter(function(r){ return (r.name+r.empId+r.team+r.dept).toLowerCase().includes(q); }) : h;
-
   if (!fil.length) { tbody.innerHTML = ''; empty.style.display = 'block'; }
   else {
     empty.style.display = 'none';
-    tbody.innerHTML = fil.map(function(r, i) {
+    tbody.innerHTML = fil.map(function(r) {
       var realIdx = h.indexOf(r);
       return '<tr>' +
         '<td class="chk"><input type="checkbox" class="row-chk" data-idx="' + realIdx + '" data-dbid="' + (r._dbId||'') + '" onchange="onChkChange()"></td>' +
@@ -487,122 +1009,95 @@ async function renderHistory() {
         '<td class="num">' + r.hTotal + '</td><td class="num">' + r.fTotal + '</td>' +
         '<td class="num">' + r.fRemain + '</td>' +
         '<td class="num" style="font-weight:600;color:var(--accent)">' + r.finalPay + '</td>' +
-        '<td style="font-size:11px;color:var(--text2)">' + (r.special||'') + '</td>' +
-        '</tr>';
+        '<td style="font-size:11px;color:var(--text2)">' + (r.special||'') + '</td></tr>';
     }).join('');
   }
   var total=h.length, td=h.reduce(function(s,r){return s+r.finalPay;},0), bt=new Set(h.map(function(r){return r.batchId;})).size;
-  document.getElementById('hTotalPeople').textContent = total;
-  document.getElementById('hTotalDays').textContent = td;
-  document.getElementById('hAvgDays').textContent = total ? Math.round(td/total) : 0;
-  document.getElementById('hBatches').textContent = bt;
+  document.getElementById('hTotalPeople').textContent=total;
+  document.getElementById('hTotalDays').textContent=td;
+  document.getElementById('hAvgDays').textContent=total?Math.round(td/total):0;
+  document.getElementById('hBatches').textContent=bt;
   updateBadge();
 }
 
-function toggleAllCheck(el) { document.querySelectorAll('.row-chk').forEach(function(c){c.checked=el.checked;}); onChkChange(); }
-function onChkChange() {
-  var n = document.querySelectorAll('.row-chk:checked').length;
-  var btn = document.getElementById('delSelBtn');
-  btn.style.display = n > 0 ? 'inline-flex' : 'none';
-  btn.textContent = '선택 ' + n + '명 삭제';
-  document.getElementById('checkAll').checked = n > 0 && n === document.querySelectorAll('.row-chk').length;
+function toggleAllCheck(el){document.querySelectorAll('.row-chk').forEach(function(c){c.checked=el.checked;});onChkChange();}
+function onChkChange(){
+  var n=document.querySelectorAll('.row-chk:checked').length;
+  var btn=document.getElementById('delSelBtn');
+  btn.style.display=n>0?'inline-flex':'none';
+  btn.textContent='선택 '+n+'명 삭제';
+  document.getElementById('checkAll').checked=n>0&&n===document.querySelectorAll('.row-chk').length;
 }
-
-async function deleteSelected() {
-  var checked = [...document.querySelectorAll('.row-chk:checked')];
-  if (!checked.length) return;
-  if (!confirm('선택한 ' + checked.length + '명의 정산 내역을 삭제하시겠습니까?')) return;
-  try {
-    var ids = checked.map(function(c){ return c.dataset.dbid; }).filter(Boolean);
-    await sbFetch('DELETE', 'leave_settlements?id=in.(' + ids.join(',') + ')');
+async function deleteSelected(){
+  var checked=[...document.querySelectorAll('.row-chk:checked')];
+  if(!checked.length)return;
+  if(!confirm('선택한 '+checked.length+'명의 정산 내역을 삭제하시겠습니까?'))return;
+  try{
+    var ids=checked.map(function(c){return c.dataset.dbid;}).filter(Boolean);
+    await sbFetch('DELETE','leave_settlements?id=in.('+ids.join(',')+')');
     renderHistory();
-  } catch(e) { alert('삭제 오류: ' + e.message); }
+  }catch(e){alert('삭제 오류: '+e.message);}
 }
-
-async function updateBadge() {
-  var h = await loadHistory();
-  document.getElementById('totalBadge').textContent = '누적 ' + h.length + '명';
+async function updateBadge(){
+  var h=await loadHistory();
+  document.getElementById('totalBadge').textContent='누적 '+h.length+'명';
 }
-
-async function clearHistory() {
-  if (!confirm('모든 누적 내역을 초기화하시겠습니까?')) return;
-  try {
-    await sbFetch('DELETE', 'leave_settlements?id=gt.0');
-    renderHistory();
-  } catch(e) { alert('초기화 오류: ' + e.message); }
+async function clearHistory(){
+  if(!confirm('모든 누적 내역을 초기화하시겠습니까?'))return;
+  try{await sbFetch('DELETE','leave_settlements?id=gt.0');renderHistory();}
+  catch(e){alert('초기화 오류: '+e.message);}
 }
-
-async function openHistModal(idx) {
-  var h = await loadHistory();
-  var r = h[idx]; if (!r) return;
-  var eraLabel = {'pre2003':'구법','mid':'통합기','post2018':'현행'}[r.era] || r.era || '';
-  var hRows = (r.hRows||[]).map(function(row){
-    return '<tr><td>'+row.period+'</td><td style="font-size:10px">'+(row.earnDate||'—')+'</td><td style="text-align:right;font-family:monospace">'+row.days+'</td><td style="text-align:right;font-family:monospace;color:var(--accent);font-weight:600">'+(row._net!==undefined?row._net:row.days)+'</td><td style="font-size:10px;color:var(--text3)">'+(row.note||'')+'</td></tr>';
-  }).join('');
-  var fRows = (r.fRows||[]).map(function(row){
-    return '<tr><td>'+row.year+'년</td><td style="font-size:10px">'+(row.earnDate||'')+'</td><td style="text-align:right;font-family:monospace">'+(row.ten||0)+'년차</td><td style="text-align:right;font-family:monospace;color:var(--accent);font-weight:600">'+row.days+'</td><td style="font-size:10px;color:var(--text3)">'+(row.note||'')+'</td></tr>';
-  }).join('');
-  document.getElementById('histModalTitle').textContent = r.name + ' 정산 상세 내역';
-  document.getElementById('histModalBody').innerHTML =
-    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:14px">' +
-    '<div class="detail-metric"><div class="dm-label">입사일 기준 누계</div><div class="dm-val">'+r.hTotal+'일</div></div>' +
-    '<div class="detail-metric"><div class="dm-label">회계연도 기준 누계</div><div class="dm-val">'+r.fTotal+'일</div></div>' +
-    '<div class="detail-metric"><div class="dm-label">퇴직연도 발생</div><div class="dm-val">'+(r.fYear||0)+'일</div></div>' +
-    '<div class="detail-metric"><div class="dm-label">퇴직연도 사용</div><div class="dm-val">'+(r.usedLeave||0)+'일</div></div>' +
-    '<div class="detail-metric"><div class="dm-label">퇴직연도 잔여 ②</div><div class="dm-val">'+r.fRemain+'일</div></div>' +
-    '<div class="detail-metric" style="background:var(--accent-l)"><div class="dm-label">최종 지급 일수</div><div class="dm-val green">'+r.finalPay+'일</div></div>' +
-    '</div>' +
-    '<div class="formula-mini" style="margin-bottom:14px">' +
-    ((r.diff||0)>0 ? '<span class="fm-chip" style="background:var(--accent-l);color:var(--accent)">① +'+r.diffAdj+'일</span>' : '<span class="fm-chip" style="background:var(--surface2);color:var(--text2)">① 0일</span>') +
-    ' + <span class="fm-chip" style="background:var(--blue-l);color:var(--blue)">② '+r.fRemain+'일</span>' +
-    ' = <strong style="color:var(--accent)">'+r.finalPay+'일</strong>' +
-    '<span style="font-size:10px;color:var(--text3);margin-left:6px">'+((r.usedRemainder||0)>0?'초과사용 '+r.usedRemainder+'일→①차감 / ':'')+'법령: '+eraLabel+(r.hasU?' | 무급휴직':'')+'</span>' +
-    '</div>' +
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' +
-    '<div><h4 style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px;text-transform:uppercase">입사일 기준</h4>' +
-    '<table class="dtable"><thead><tr><th>구분</th><th>발생일</th><th class="num">발생</th><th class="num">실지급</th><th>비고</th></tr></thead>' +
-    '<tbody>'+(hRows||'<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:10px">저장 시 상세데이터 없음</td></tr>')+'</tbody>' +
-    '<tfoot><tr><td colspan="3">합계</td><td class="num">'+r.hTotal+'</td><td></td></tr></tfoot></table></div>' +
-    '<div><h4 style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px;text-transform:uppercase">회계연도 기준</h4>' +
-    '<table class="dtable"><thead><tr><th>연도</th><th>발생일</th><th class="num">근속</th><th class="num">발생</th><th>비고</th></tr></thead>' +
-    '<tbody>'+(fRows||'<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:10px">저장 시 상세데이터 없음</td></tr>')+'</tbody>' +
-    '<tfoot><tr><td colspan="3">합계</td><td class="num">'+r.fTotal+'</td><td></td></tr></tfoot></table></div>' +
+async function openHistModal(idx){
+  var h=await loadHistory(); var r=h[idx]; if(!r)return;
+  var eraLabel={'pre2003':'구법','mid':'통합기','post2018':'현행'}[r.era]||r.era||'';
+  var hRows=(r.hRows||[]).map(function(row){return '<tr><td>'+row.period+'</td><td style="font-size:10px">'+(row.earnDate||'—')+'</td><td style="text-align:right;font-family:monospace">'+row.days+'</td><td style="text-align:right;font-family:monospace;color:var(--accent);font-weight:600">'+(row._net!==undefined?row._net:row.days)+'</td><td style="font-size:10px;color:var(--text3)">'+(row.note||'')+'</td></tr>';}).join('');
+  var fRows=(r.fRows||[]).map(function(row){return '<tr><td>'+row.year+'년</td><td style="font-size:10px">'+(row.earnDate||'')+'</td><td style="text-align:right;font-family:monospace">'+(row.ten||0)+'년차</td><td style="text-align:right;font-family:monospace;color:var(--accent);font-weight:600">'+row.days+'</td><td style="font-size:10px;color:var(--text3)">'+(row.note||'')+'</td></tr>';}).join('');
+  document.getElementById('histModalTitle').textContent=r.name+' 정산 상세 내역';
+  document.getElementById('histModalBody').innerHTML=
+    '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:14px">'+
+    '<div class="detail-metric"><div class="dm-label">입사일 기준 누계</div><div class="dm-val">'+r.hTotal+'일</div></div>'+
+    '<div class="detail-metric"><div class="dm-label">회계연도 기준 누계</div><div class="dm-val">'+r.fTotal+'일</div></div>'+
+    '<div class="detail-metric"><div class="dm-label">퇴직연도 발생</div><div class="dm-val">'+(r.fYear||0)+'일</div></div>'+
+    '<div class="detail-metric"><div class="dm-label">퇴직연도 사용</div><div class="dm-val">'+(r.usedLeave||0)+'일</div></div>'+
+    '<div class="detail-metric"><div class="dm-label">퇴직연도 잔여</div><div class="dm-val">'+r.fRemain+'일</div></div>'+
+    '<div class="detail-metric" style="background:var(--accent-l)"><div class="dm-label">최종 지급 일수</div><div class="dm-val green">'+r.finalPay+'일</div></div>'+
+    '</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
+    '<div><h4 style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px">입사일 기준</h4>'+
+    '<table class="dtable"><thead><tr><th>구분</th><th>발생일</th><th class="num">발생</th><th class="num">실지급</th><th>비고</th></tr></thead>'+
+    '<tbody>'+(hRows||'<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:10px">데이터 없음</td></tr>')+'</tbody>'+
+    '<tfoot><tr><td colspan="3">합계</td><td class="num">'+r.hTotal+'</td><td></td></tr></tfoot></table></div>'+
+    '<div><h4 style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px">회계연도 기준</h4>'+
+    '<table class="dtable"><thead><tr><th>연도</th><th>발생일</th><th class="num">근속</th><th class="num">발생</th><th>비고</th></tr></thead>'+
+    '<tbody>'+(fRows||'<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:10px">데이터 없음</td></tr>')+'</tbody>'+
+    '<tfoot><tr><td colspan="3">합계</td><td class="num">'+r.fTotal+'</td><td></td></tr></tfoot></table></div>'+
     '</div>';
   document.getElementById('histModalOverlay').classList.add('open');
 }
-function closeHistModal(e) { if (e.target===document.getElementById('histModalOverlay')) document.getElementById('histModalOverlay').classList.remove('open'); }
+function closeHistModal(e){if(e.target===document.getElementById('histModalOverlay'))document.getElementById('histModalOverlay').classList.remove('open');}
 
-async function exportHistory() {
-  var h = await loadHistory();
-  if (!h.length) { alert('저장된 내역이 없습니다.'); return; }
-  try {
-    var wb = XLSX.utils.book_new();
-    var summary = h.map(function(r){ return {'배치ID':r.batchId,'저장일':r.date,'이름':r.name,'사번':r.empId,'소속':r.dept,'팀':r.team,'입사일':r.joinDate,'퇴사일':r.retireDate,'적용법령':r.era,'입사일기준누계':r.hTotal,'회계연도기준누계':r.fTotal,'누계차이':r.diffAdj||0,'퇴직연도발생':r.fYear||0,'퇴직연도사용':r.usedLeave||0,'퇴직연도잔여':r.fRemain,'최종지급일수':r.finalPay,'비고':r.special}; });
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(summary), '정산요약');
-    var hDetail = [];
-    h.forEach(function(r){ (r.hRows||[]).forEach(function(row){ hDetail.push({'이름':r.name,'사번':r.empId,'구분':row.period,'발생일':row.earnDate||'','발생일수':row.days,'실지급':row._net!==undefined?row._net:row.days,'비고':row.note||''}); }); });
-    if (hDetail.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(hDetail), '입사일기준상세');
-    var fDetail = [];
-    h.forEach(function(r){ (r.fRows||[]).forEach(function(row){ fDetail.push({'이름':r.name,'사번':r.empId,'발생연도':(row.year||'')+'년','발생일':row.earnDate||'','근속':(row.ten||0)+'년차','발생일수':row.days,'비고':row.note||''}); }); });
-    if (fDetail.length) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(fDetail), '회계연도기준상세');
-    XLSX.writeFile(wb, '연차정산_누적내역.xlsx');
-  } catch(e) { alert('엑셀 내보내기 오류: ' + e.message); }
+async function exportHistory(){
+  var h=await loadHistory();
+  if(!h.length){alert('저장된 내역이 없습니다.');return;}
+  try{
+    var wb=XLSX.utils.book_new();
+    var summary=h.map(function(r){return {'배치ID':r.batchId,'저장일':r.date,'이름':r.name,'사번':r.empId,'소속':r.dept,'팀':r.team,'입사일':r.joinDate,'퇴사일':r.retireDate,'적용법령':r.era,'입사일기준누계':r.hTotal,'회계연도기준누계':r.fTotal,'누계차이':r.diffAdj||0,'퇴직연도발생':r.fYear||0,'퇴직연도사용':r.usedLeave||0,'퇴직연도잔여':r.fRemain,'최종지급일수':r.finalPay,'비고':r.special};});
+    XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(summary),'정산요약');
+    XLSX.writeFile(wb,'연차정산_누적내역.xlsx');
+  }catch(e){alert('엑셀 내보내기 오류: '+e.message);}
 }
-
-function downloadTemplate() {
+function downloadTemplate(){
   var h=[['이름','사번','소속','팀명','생년월일','입사일','퇴사일','퇴직연도 연차 사용 일수','무급휴직 여부','무급휴직 시작','무급휴직 종료','비고']];
   var s1=['이혜린','CW2024143','커넥트웨이브','HRM팀','1995-01-27','2014-05-07','2026-08-07',5,'X','','',''];
   var s2=['김커넥','CW2024555','커넥트웨이브','개발팀','1987-05-21','2020-08-30','2026-07-01',10,'O','2024-05-06','2025-02-01','육아휴직'];
   var ws=XLSX.utils.aoa_to_sheet([...h,s1,s2]);
   var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,'퇴사자명단',ws);XLSX.writeFile(wb,'퇴사자명단_양식.xlsx');
 }
-
-function showPage(n) {
-  document.querySelectorAll('.page').forEach(function(p,i){ p.classList.toggle('active',i===n); });
-  document.querySelectorAll('.nav-tab').forEach(function(t,i){ t.classList.toggle('active',i===n); });
-  if (n===2) renderHistory();
+function showPage(n){
+  document.querySelectorAll('.page').forEach(function(p,i){p.classList.toggle('active',i===n);});
+  document.querySelectorAll('.nav-tab').forEach(function(t,i){t.classList.toggle('active',i===n);});
+  if(n===2)renderHistory();
 }
-
 renderHistory();
 
 </script>
