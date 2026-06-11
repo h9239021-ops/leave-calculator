@@ -360,59 +360,6 @@ function renderCard(res,idx){
 
 function tog(idx){const pd=document.getElementById('pd'+idx),ti=document.getElementById('ti'+idx);const o=pd.classList.toggle('open');ti.classList.toggle('open',o);}
 
-function parseDate(v){
-  if(v===null||v===undefined||v==='')return null;
-  if(v instanceof Date)return isNaN(v.getTime())?null:new Date(v.getFullYear(),v.getMonth(),v.getDate());
-  if(typeof v==='number'&&!isNaN(v)&&v>1000){const d=new Date((v-25569)*86400000);return new Date(d.getFullYear(),d.getMonth(),d.getDate());}
-  const s=String(v).trim();
-  if(!s||s==='NaT'||s==='null')return null;
-  const m=s.match(/(\d{4})[-./년](\d{1,2})[-./월]?(\d{1,2})/);
-  if(m){const d=new Date(parseInt(m[1]),parseInt(m[2])-1,parseInt(m[3]));if(!isNaN(d.getTime()))return d;}
-  const direct=new Date(s);return!isNaN(direct.getTime())?new Date(direct.getFullYear(),direct.getMonth(),direct.getDate()):null;
-}
-function parseRow(row){
-  const norm=s=>String(s||'').trim().replace(/\s+/g,'');
-  const get=keys=>{for(const k of keys){const nk=norm(k);const found=Object.keys(row).find(rk=>norm(rk)===nk);if(found!==undefined&&row[found]!==undefined&&row[found]!==null&&row[found]!=='')return row[found];}return null;};
-  const name=get(['이름','성명','Name'])||'',empId=get(['사번','직원번호','EmpId'])||'';
-  const dept=get(['소속','사업부','부서','Dept'])||'',team=get(['팀명','팀','Team'])||'';
-  const joinDate=parseDate(get(['입사일','입사일자','JoinDate']));
-  const retireDate=parseDate(get(['퇴사일','퇴직일','퇴사일자','RetireDate']));
-  const usedLeave=parseInt(get(['퇴직연도연차사용일수','퇴직연도사용연차','연차사용일수','사용연차','UsedLeave']))||0;
-  const special=get(['비고','특이사항','Note','Remark'])||'';
-  const unpaidPeriods=[];
-  const yn=norm(String(get(['무급휴직여부','무급여부'])||'')).toUpperCase();
-  if(yn==='O'||yn==='Y'||yn==='예'){const s=parseDate(get(['무급휴직시작','무급휴직시작일','무급시작']));const e=parseDate(get(['무급휴직종료','무급휴직종료일','무급종료']));if(s&&e)unpaidPeriods.push({start:dStr(s),end:dStr(e)});}
-  for(let i=1;i<=5;i++){const s=parseDate(get([`무급휴직시작${i}`,`무급시작${i}`]));const e=parseDate(get([`무급휴직종료${i}`,`무급종료${i}`]));if(s&&e)unpaidPeriods.push({start:dStr(s),end:dStr(e)});}
-  return{name,empId,dept,team,joinDate,retireDate,usedLeave,unpaidPeriods,special};
-}
-let currentResults=[];
-function handleDrop(ev){ev.preventDefault();document.getElementById('uploadZone').classList.remove('drag');const f=ev.dataTransfer.files[0];if(f)handleFile(f);}
-function handleFile(file){if(!file)return;const reader=new FileReader();reader.onload=e=>{try{const wb=XLSX.read(e.target.result,{type:'binary',cellDates:true});const ws=wb.Sheets[wb.SheetNames[0]];processData(XLSX.utils.sheet_to_json(ws,{raw:false,defval:''}));}catch(err){alert('파일 파싱 오류: '+err.message);}};reader.readAsBinaryString(file);}
-function processData(data){
-  currentResults=[];const cards=document.getElementById('resultCards');cards.innerHTML='';let ec=0;
-  data.forEach((row,idx)=>{
-    const p=parseRow(row);
-    if(!p.name||!p.joinDate||!p.retireDate){ec++;const miss=[!p.name&&'이름',!p.joinDate&&'입사일',!p.retireDate&&'퇴사일'].filter(Boolean);cards.innerHTML+=`<div class="err-card">⚠ ${idx+2}행: ${miss.join(', ')} 누락</div>`;return;}
-    if(p.retireDate<=p.joinDate){ec++;cards.innerHTML+=`<div class="err-card">⚠ ${p.name}: 퇴사일이 입사일보다 빠릅니다.</div>`;return;}
-    try{const res=calcPerson(p);currentResults.push(res);cards.innerHTML+=renderCard(res,currentResults.length-1);}
-    catch(err){ec++;cards.innerHTML+=`<div class="err-card">⚠ ${p.name} 계산 오류: ${err.message}</div>`;}
-  });
-  const total=currentResults.length;
-  document.getElementById('resultTitle').textContent=`정산 결과 (${total}명)`;
-  document.getElementById('resultCount').textContent=`처리 완료: ${total}명${ec?` | 오류: ${ec}건`:''}`;
-  document.getElementById('uploadResults').style.display='block';
-}
-function renderCard(res,idx){
-  const av=res.name?res.name.slice(0,2):'??';
-  const eraLabel={'pre2003':'구법','mid':'통합기','post2018':'현행'}[res.era];
-  const eraColor={'pre2003':'pc-amber','mid':'pc-blue','post2018':'pc-green'}[res.era];
-  const hTr=res.hRows.map(r=>`<tr><td>${r.period}</td><td style="font-size:10px">${r.earnDate||'—'}</td><td class="num">${r.days}</td><td class="num" style="color:var(--accent);font-weight:600">${r._net!==undefined?r._net:r.days}</td><td style="font-size:10px;color:var(--text3)">${r.note||''}</td></tr>`).join('');
-  const fTr=res.fRows.map(r=>`<tr><td>${r.year}년</td><td style="font-size:10px">${r.earnDate}</td><td class="num">${r.ten}년차</td><td class="num" style="color:var(--accent);font-weight:600">${r.days}</td><td style="font-size:10px;color:var(--text3)">${r.note||''}</td></tr>`).join('');
-  return`<div class="person-card"><div class="person-header" onclick="tog(${idx})"><div class="person-avatar">${av}</div><div class="person-info"><div class="person-name">${res.name}${res.empId?` <span style="font-size:11px;color:var(--text3);font-weight:400">${res.empId}</span>`:''}${res.special?`<span class="special-tag">${res.special}</span>`:''}</div><div class="person-meta">${[res.dept,res.team].filter(Boolean).join(' · ')||'—'} | 입사 ${fmtD(res.joinDate)} · 퇴사 ${fmtD(res.retireDate)}</div></div><div class="person-chips"><span class="p-chip ${eraColor}">${eraLabel}</span>${res.hasU?'<span class="p-chip pc-amber">무급휴직</span>':''}<span class="p-days">${res.finalPay}일</span></div><span class="toggle-icon" id="ti${idx}">▼</span></div><div class="person-detail" id="pd${idx}"><div class="detail-grid"><div class="detail-metric"><div class="dm-label">입사일 기준 누계</div><div class="dm-val">${res.hTotal}일</div></div><div class="detail-metric"><div class="dm-label">회계연도 기준 누계</div><div class="dm-val">${res.fTotal}일</div></div><div class="detail-metric"><div class="dm-label">퇴직연도 발생</div><div class="dm-val">${res.fYear}일</div></div><div class="detail-metric"><div class="dm-label">퇴직연도 사용</div><div class="dm-val">${res.usedLeave}일</div></div><div class="detail-metric"><div class="dm-label">퇴직연도 잔여 (②)</div><div class="dm-val">${res.fRemain}일</div></div><div class="detail-metric" style="background:var(--accent-l)"><div class="dm-label">최종 지급 일수</div><div class="dm-val green">${res.finalPay}일</div></div></div><div class="formula-mini">${res.diff>0?`<span class="fm-chip" style="background:var(--accent-l);color:var(--accent)">① +${res.diffAdj}일</span>`:`<span class="fm-chip" style="background:var(--surface2);color:var(--text2)">① 0일</span>`}<span style="color:var(--text3)">+</span><span class="fm-chip" style="background:var(--blue-l);color:var(--blue)">② ${res.fRemain}일</span><span style="color:var(--text3)">=</span><strong style="color:var(--accent)">${res.finalPay}일</strong><span style="font-size:10px;color:var(--text3);margin-left:6px">입사일기준 ${res.hTotal}일 − 회계연도기준 ${res.fTotal}일 = ${res.diff}일${res.usedRemainder>0?` / 초과사용 ${res.usedRemainder}일→①차감`:''}</span></div><div class="detail-tables"><div class="detail-table-wrap"><h4>입사일 기준</h4><table class="dtable"><thead><tr><th>구분</th><th>발생일</th><th class="num">발생</th><th class="num">실지급</th><th>비고</th></tr></thead><tbody>${hTr}</tbody><tfoot><tr><td colspan="3">합계</td><td class="num">${res.hTotal}</td><td></td></tr></tfoot></table></div><div class="detail-table-wrap"><h4>회계연도 기준</h4><table class="dtable"><thead><tr><th>연도</th><th>발생일</th><th class="num">근속</th><th class="num">발생</th><th>비고</th></tr></thead><tbody>${fTr}</tbody><tfoot><tr><td colspan="3">합계</td><td class="num">${res.fTotal}</td><td></td></tr></tfoot></table></div></div></div></div>`;
-}
-function tog(idx){const pd=document.getElementById('pd'+idx),ti=document.getElementById('ti'+idx);const o=pd.classList.toggle('open');ti.classList.toggle('open',o);}
-
-
 // ═══ Supabase 연동 설정 ═══
 const SUPABASE_URL = 'https://wvolctqklbmmlzosexel.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_xRdm-EvBqyln-ZLp0A6vTA_ghRiKtzT';
