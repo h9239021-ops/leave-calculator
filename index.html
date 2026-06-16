@@ -509,10 +509,17 @@ nav{position:sticky;top:0;z-index:100;background:var(--surface);border-bottom:1p
     <div><strong>팀 공유 저장소</strong> — 이 페이지에서 저장한 내역은 같은 링크를 쓰는 팀원 모두에게 실시간 공유됩니다. <span style="opacity:.7">🔄 새로고침으로 최신 내역을 불러오세요.</span></div>
   </div>
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
-    <div style="display:flex;gap:6px;align-items:center">
-      <span style="font-size:12px;color:var(--text2)">통계 기준:</span>
-      <select id="statsYearFilter" onchange="renderHistory()" style="height:30px;padding:0 8px;font-size:12px;border-radius:6px;border:0.5px solid var(--border2);background:var(--surface)">
+    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+      <span style="font-size:12px;color:var(--text2)">통계 기준 (퇴사일):</span>
+      <select id="statsYearFilter" onchange="onStatsYearChange()" style="height:30px;padding:0 8px;font-size:12px;border-radius:6px;border:0.5px solid var(--border2);background:var(--surface)">
         <option value="">전체 연도</option>
+      </select>
+      <select id="statsMonthFilter" onchange="renderHistory()" style="height:30px;padding:0 8px;font-size:12px;border-radius:6px;border:0.5px solid var(--border2);background:var(--surface)">
+        <option value="">전체 월</option>
+        <option value="01">1월</option><option value="02">2월</option><option value="03">3월</option>
+        <option value="04">4월</option><option value="05">5월</option><option value="06">6월</option>
+        <option value="07">7월</option><option value="08">8월</option><option value="09">9월</option>
+        <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
       </select>
     </div>
   </div>
@@ -546,7 +553,7 @@ nav{position:sticky;top:0;z-index:100;background:var(--surface);border-bottom:1p
     <input type="text" id="historySearch" placeholder="통합 검색 (이름, 사번, 팀)..." oninput="renderHistory()">
     <button class="del-sel-btn" id="delSelBtn" onclick="deleteSelected()">선택 삭제</button>
     <button id="syncBtn" onclick="renderHistory()" style="padding:8px 14px;border-radius:8px;font-size:12px;font-weight:500;background:var(--surface);border:1px solid #c4b5fd;color:#6d28d9;cursor:pointer;white-space:nowrap">🔄 새로고침</button>
-    <button class="export-btn" onclick="exportHistory()">엑셀 내보내기</button>
+    <button class="export-btn" onclick="openExcelModal()">엑셀 내보내기</button>
     <button class="export-btn" onclick="openPdfModal()" style="background:#fef2f2;border-color:#fca5a5;color:#b91c1c">📄 PDF 내보내기</button>
     <button class="clear-btn" onclick="clearHistory()">전체 초기화</button>
   </div>
@@ -579,6 +586,64 @@ nav{position:sticky;top:0;z-index:100;background:var(--surface);border-bottom:1p
     <div style="display:flex;gap:8px;margin-top:18px">
       <button onclick="closePdfModal()" style="flex:1;height:40px;background:var(--surface2);border:0.5px solid var(--border2);border-radius:8px;cursor:pointer;color:var(--text)">취소</button>
       <button onclick="generatePdf()" style="flex:1;height:40px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:500">PDF 생성</button>
+    </div>
+  </div>
+</div>
+
+<!-- 엑셀 내보내기 옵션 모달 -->
+<div class="modal-overlay" id="excelModalOverlay" onclick="if(event.target===this)closeExcelModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1000;align-items:center;justify-content:center">
+  <div style="background:var(--bg);border-radius:16px;padding:1.5rem;width:90%;max-width:440px;max-height:85vh;overflow-y:auto">
+    <h3 style="margin-bottom:14px">📊 엑셀 내보내기 옵션</h3>
+
+    <div style="margin-bottom:14px">
+      <div style="font-size:12px;font-weight:500;color:var(--text);margin-bottom:8px">대상</div>
+      <label style="display:flex;align-items:center;gap:8px;padding:6px 0;cursor:pointer"><input type="radio" name="excelTarget" value="all" checked onchange="onExcelTargetChange()"> 전체 명단</label>
+      <label style="display:flex;align-items:center;gap:8px;padding:6px 0;cursor:pointer"><input type="radio" name="excelTarget" value="selected" onchange="onExcelTargetChange()"> 선택한 사람만 (<span id="excelSelectedCount">0</span>명 선택됨)</label>
+      <label style="display:flex;align-items:center;gap:8px;padding:6px 0;cursor:pointer"><input type="radio" name="excelTarget" value="month" onchange="onExcelTargetChange()"> 특정 퇴사월만</label>
+      <div id="excelMonthPicker" style="display:none;margin:6px 0 0 26px;display:flex;gap:6px">
+        <select id="excelYear" style="height:30px;padding:0 8px;font-size:12px;border-radius:6px;border:0.5px solid var(--border2)"></select>
+        <select id="excelMonth" style="height:30px;padding:0 8px;font-size:12px;border-radius:6px;border:0.5px solid var(--border2)">
+          <option value="01">1월</option><option value="02">2월</option><option value="03">3월</option>
+          <option value="04">4월</option><option value="05">5월</option><option value="06">6월</option>
+          <option value="07">7월</option><option value="08">8월</option><option value="09">9월</option>
+          <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="margin-bottom:14px">
+      <div style="font-size:12px;font-weight:500;color:var(--text);margin-bottom:8px">내보낼 항목 (요약 시트 컬럼)</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="name" checked> 이름</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="empId" checked> 사번</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="dept" checked> 소속</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="team" checked> 팀</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="joinDate" checked> 입사일</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="retireDate" checked> 퇴사일</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="era" checked> 적용법령</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="hTotal" checked> 입사일기준누계</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="fTotal" checked> 회계연도기준누계</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="diffAdj" checked> 누계차이</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="fYear" checked> 퇴직연도발생</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="usedLeave" checked> 퇴직연도사용</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="fRemain" checked> 퇴직연도잔여</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="finalPay" checked> 최종지급일수</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="special" checked> 비고</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="batchId" checked> 배치ID</label>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:8px">
+        <button onclick="toggleAllExcelCols(true)" style="font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;padding:0">전체 선택</button>
+        <button onclick="toggleAllExcelCols(false)" style="font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;padding:0">전체 해제</button>
+      </div>
+    </div>
+
+    <label style="display:flex;align-items:center;gap:8px;padding:6px 0;cursor:pointer;margin-bottom:10px">
+      <input type="checkbox" id="excelIncludeDetail" checked> 상세 발생내역 시트 포함 (입사일기준상세 / 회계연도기준상세)
+    </label>
+
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button onclick="closeExcelModal()" style="flex:1;height:40px;background:var(--surface2);border:0.5px solid var(--border2);border-radius:8px;cursor:pointer;color:var(--text)">취소</button>
+      <button onclick="generateExcel()" style="flex:1;height:40px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:500">엑셀 생성</button>
     </div>
   </div>
 </div>
@@ -1311,6 +1376,7 @@ async function renderHistory(){
   const fRetireFrom=normDateStr(document.getElementById('f_retireFrom').value);
   const fRetireTo=normDateStr(document.getElementById('f_retireTo').value);
   const statsYear=document.getElementById('statsYearFilter').value;
+  const statsMonth=document.getElementById('statsMonthFilter').value;
 
   let fil = h;
   if(q) fil = fil.filter(r=>(r.name+r.empId+r.team+r.dept).toLowerCase().includes(q));
@@ -1321,7 +1387,14 @@ async function renderHistory(){
   if(fJoinTo) fil = fil.filter(r=>normDateStr(r.joinDate) <= fJoinTo);
   if(fRetireFrom) fil = fil.filter(r=>normDateStr(r.retireDate) >= fRetireFrom);
   if(fRetireTo) fil = fil.filter(r=>normDateStr(r.retireDate) <= fRetireTo);
-  if(statsYear) fil = fil.filter(r=>(r.retireDate||'').includes(statsYear));
+  if(statsYear) fil = fil.filter(r=>{
+    var d = normDateStr(r.retireDate);
+    return d.slice(0,4) === statsYear;
+  });
+  if(statsMonth) fil = fil.filter(r=>{
+    var d = normDateStr(r.retireDate);
+    return d.slice(4,6) === statsMonth;
+  });
 
   const tbody=document.getElementById('historyBody'),empty=document.getElementById('historyEmpty');
   if(!fil.length){tbody.innerHTML='';empty.style.display='block';}
@@ -1353,6 +1426,7 @@ async function renderHistory(){
   updateBadge();
 }
 
+function onStatsYearChange(){ renderHistory(); }
 function toggleFilterPanel(){
   var panel=document.getElementById('filterPanel');
   var icon=document.getElementById('filterToggleIcon');
@@ -1444,31 +1518,106 @@ async function openHistModal(idx){
 }
 function closeHistModal(e){if(e.target===document.getElementById('histModalOverlay'))document.getElementById('histModalOverlay').classList.remove('open');}
 
-async function exportHistory(){
-  const h=await loadHistory();
-  if(!h.length){alert('저장된 내역이 없습니다.');return;}
+function openExcelModal(){
+  const n = document.querySelectorAll('.row-chk:checked').length;
+  document.getElementById('excelSelectedCount').textContent = n;
+  // 연도 선택 옵션 채우기
+  const yearSel = document.getElementById('excelYear');
+  if (yearSel.options.length === 0){
+    const h = window._historyCache || [];
+    const years = [...new Set(h.map(r=>{
+      const m=(r.retireDate||'').match(/(\d{4})/);
+      return m?m[1]:null;
+    }).filter(Boolean))].sort().reverse();
+    years.forEach(y=>{
+      const opt=document.createElement('option');
+      opt.value=y; opt.textContent=y+'년';
+      yearSel.appendChild(opt);
+    });
+  }
+  document.getElementById('excelModalOverlay').style.display = 'flex';
+}
+function closeExcelModal(){
+  document.getElementById('excelModalOverlay').style.display = 'none';
+}
+function onExcelTargetChange(){
+  const val = document.querySelector('input[name="excelTarget"]:checked').value;
+  document.getElementById('excelMonthPicker').style.display = (val === 'month') ? 'flex' : 'none';
+}
+function toggleAllExcelCols(checked){
+  document.querySelectorAll('.excel-col').forEach(cb => cb.checked = checked);
+}
+
+const EXCEL_COL_DEFS = {
+  name:['이름', r=>r.name], empId:['사번', r=>r.empId],
+  dept:['소속', r=>r.dept], team:['팀', r=>r.team],
+  joinDate:['입사일', r=>r.joinDate], retireDate:['퇴사일', r=>r.retireDate],
+  era:['적용법령', r=>eraLabel(r.era)],
+  hTotal:['입사일기준누계', r=>r.hTotal], fTotal:['회계연도기준누계', r=>r.fTotal],
+  diffAdj:['누계차이(①)', r=>r.diffAdj||0], fYear:['퇴직연도발생', r=>r.fYear||0],
+  usedLeave:['퇴직연도사용', r=>r.usedLeave||0], fRemain:['퇴직연도잔여(②)', r=>r.fRemain],
+  finalPay:['최종지급일수', r=>r.finalPay], special:['비고', r=>r.special],
+  batchId:['배치ID', r=>r.batchId]
+};
+
+async function generateExcel(){
+  const h = window._historyCache.length ? window._historyCache : await loadHistory();
+  if(!h.length){ alert('저장된 내역이 없습니다.'); return; }
+
+  const target = document.querySelector('input[name="excelTarget"]:checked').value;
+  let rows;
+  if(target === 'selected'){
+    const idxs = [...document.querySelectorAll('.row-chk:checked')].map(c=>parseInt(c.dataset.idx));
+    rows = idxs.map(i=>h[i]).filter(Boolean);
+    if(!rows.length){ alert('선택된 사람이 없습니다.'); return; }
+  } else if(target === 'month'){
+    const yy = document.getElementById('excelYear').value;
+    const mm = document.getElementById('excelMonth').value;
+    rows = h.filter(r=>{
+      const d = normDateStr(r.retireDate);
+      return d.slice(0,4)===yy && d.slice(4,6)===mm;
+    });
+    if(!rows.length){ alert('해당 ' + yy + '년 ' + mm + '월에 퇴사한 대상자가 없습니다.'); return; }
+  } else {
+    rows = h;
+  }
+
+  const selectedCols = [...document.querySelectorAll('.excel-col:checked')].map(cb=>cb.value);
+  if(!selectedCols.length){ alert('내보낼 항목을 1개 이상 선택해주세요.'); return; }
+  const includeDetail = document.getElementById('excelIncludeDetail').checked;
+
   try{
     const wb=XLSX.utils.book_new();
-    // 시트1: 요약
-    const summary=h.map(r=>({'배치ID':r.batchId,'저장일':r.date,'이름':r.name,'사번':r.empId,'소속':r.dept,'팀':r.team,'입사일':r.joinDate,'퇴사일':r.retireDate,'적용법령':({'pre2003':'구법','mid':'통합기','post2018':'현행'}[r.era]||''),'입사일기준누계':r.hTotal,'회계연도기준누계':r.fTotal,'누계차이(①)':r.diffAdj||0,'퇴직연도발생':r.fYear||0,'퇴직연도사용':r.usedLeave||0,'퇴직연도잔여(②)':r.fRemain,'최종지급일수':r.finalPay,'비고':r.special}));
+    const summary = rows.map(r=>{
+      const obj = {};
+      selectedCols.forEach(key=>{
+        const def = EXCEL_COL_DEFS[key];
+        if(def) obj[def[0]] = def[1](r);
+      });
+      return obj;
+    });
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(summary), '정산요약');
-    // 시트2: 입사일기준 상세
-    const hDetail=[];
-    h.forEach(r=>{
-      (r.hRows||[]).forEach(row=>{
-        hDetail.push({'이름':r.name,'사번':r.empId,'구분':row.period,'발생일':row.earnDate||'','산정기간':row.range||'','산정근거':row.basis||'','발생일수':row.days,'실지급':row._net!==undefined?row._net:row.days,'비고':row.note||''});
+
+    if(includeDetail){
+      const hDetail=[];
+      rows.forEach(r=>{
+        (r.hRows||[]).forEach(row=>{
+          hDetail.push({'이름':r.name,'사번':r.empId,'구분':row.period,'발생일':row.earnDate||'','산정기간':row.range||'','산정근거':row.basis||'','발생일수':row.days,'실지급':row._net!==undefined?row._net:row.days,'비고':row.note||''});
+        });
       });
-    });
-    if(hDetail.length)XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(hDetail), '입사일기준상세');
-    // 시트3: 회계연도기준 상세
-    const fDetail=[];
-    h.forEach(r=>{
-      (r.fRows||[]).forEach(row=>{
-        fDetail.push({'이름':r.name,'사번':r.empId,'발생연도':row.year+'년','발생일':row.earnDate||'','산정대상기간':row.prevPeriod||'','근속':row.ten+'년차','발생일수':row.days,'비고':row.note||''});
+      if(hDetail.length)XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(hDetail), '입사일기준상세');
+
+      const fDetail=[];
+      rows.forEach(r=>{
+        (r.fRows||[]).forEach(row=>{
+          fDetail.push({'이름':r.name,'사번':r.empId,'발생연도':row.year+'년','발생일':row.earnDate||'','산정대상기간':row.prevPeriod||'','근속':row.ten+'년차','발생일수':row.days,'비고':row.note||''});
+        });
       });
-    });
-    if(fDetail.length)XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(fDetail), '회계연도기준상세');
+      if(fDetail.length)XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(fDetail), '회계연도기준상세');
+    }
+
     XLSX.writeFile(wb,'연차정산_누적내역.xlsx');
+    closeExcelModal();
   }catch(e){alert('엑셀 내보내기 오류: '+e.message);}
 }
 
