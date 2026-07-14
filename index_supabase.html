@@ -1,0 +1,2719 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>연차미사용수당 정산 대시보드</title>
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f5f4f0;--surface:#fff;--surface2:#f0efe9;--border:#e2e0d8;--border2:#ccc9be;--text:#1a1917;--text2:#6b6860;--text3:#9b9890;--accent:#2d5a3d;--accent-l:#e8f0eb;--accent2:#1e3d2a;--blue:#1a3a5c;--blue-l:#e8eef5;--amber:#7a4f1a;--amber-l:#fdf3e3;--red:#8b2020;--red-l:#fdeaea;--mono:'DM Mono',monospace;--sans:'Pretendard',sans-serif;--r:10px;--rl:16px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh}
+nav{position:sticky;top:0;z-index:100;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 2rem;height:56px}
+.nav-brand{font-size:14px;font-weight:600;color:var(--accent);letter-spacing:-.02em;margin-right:2rem;white-space:nowrap}
+.nav-brand span{color:var(--text3);font-weight:400}
+.nav-tabs{display:flex}
+.nav-tab{padding:0 20px;height:56px;display:flex;align-items:center;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;white-space:nowrap;background:none;border-top:none;border-left:none;border-right:none}
+.nav-tab:hover{color:var(--text)}.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.nav-right{margin-left:auto}.total-badge{font-size:12px;font-weight:500;background:var(--accent-l);color:var(--accent);padding:4px 10px;border-radius:20px}
+.page{display:none;max-width:1000px;margin:0 auto;padding:2rem 1.5rem}.page.active{display:block}
+.guide-hero{background:var(--accent);color:#fff;border-radius:var(--rl);padding:2.5rem;margin-bottom:1.5rem;position:relative;overflow:hidden}
+.guide-hero::before{content:'';position:absolute;right:-40px;top:-40px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.06)}
+.guide-hero h2{font-size:22px;font-weight:600;margin-bottom:8px}.guide-hero p{font-size:14px;opacity:.8;line-height:1.7;max-width:560px}
+.guide-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.gcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:1.5rem}
+.gcard h3{font-size:13px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem;display:flex;align-items:center;gap:6px}
+.gcard h3 .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);flex-shrink:0}
+.step-list{display:flex;flex-direction:column;gap:10px}.step-item{display:flex;gap:12px;align-items:flex-start}
+.step-num{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-weight:600;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.step-text{font-size:13px;line-height:1.6}.step-text strong{color:var(--accent)}
+.formula-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:1.5rem;margin-bottom:12px}
+.formula-card h3{font-size:13px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;margin-bottom:1rem}
+.formula-visual{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--surface2);border-radius:var(--r);padding:1rem 1.25rem;font-size:13px}
+.fv-chip{padding:5px 12px;border-radius:6px;font-weight:500}.fv-green{background:var(--accent-l);color:var(--accent2)}.fv-blue{background:var(--blue-l);color:var(--blue)}.fv-op{color:var(--text3);font-size:16px}
+.law-timeline{display:flex;flex-direction:column}.law-era{display:flex;gap:16px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--border)}.law-era:last-child{border-bottom:none}
+.era-year{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--text3);width:110px;flex-shrink:0;margin-top:2px}
+.era-badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;flex-shrink:0;margin-top:1px}
+.era-amber{background:var(--amber-l);color:var(--amber)}.era-blue{background:var(--blue-l);color:var(--blue)}.era-green{background:var(--accent-l);color:var(--accent)}
+.era-desc{font-size:13px;line-height:1.6}
+.note-box{background:var(--amber-l);border:1px solid #e8d5b0;border-radius:var(--r);padding:1rem 1.25rem;font-size:13px;line-height:1.7;color:var(--amber);margin-top:12px}
+.note-box strong{display:block;margin-bottom:4px}
+.upload-zone{border:2px dashed var(--border2);border-radius:var(--rl);background:var(--surface);padding:2.5rem;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;margin-bottom:1.5rem;position:relative}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--accent);background:var(--accent-l)}
+.upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-icon{font-size:36px;margin-bottom:12px}.upload-title{font-size:15px;font-weight:600;margin-bottom:6px}.upload-sub{font-size:13px;color:var(--text2);line-height:1.9}
+.upload-sub code{font-family:var(--mono);font-size:12px;background:var(--surface2);padding:1px 5px;border-radius:3px;white-space:nowrap}
+.template-btn{display:inline-flex;align-items:center;gap:6px;margin-top:14px;padding:8px 16px;border-radius:20px;font-size:12px;font-weight:500;background:var(--surface);border:1px solid var(--border2);color:var(--text2);cursor:pointer;position:relative;z-index:2}
+.template-btn:hover{border-color:var(--accent);color:var(--accent)}
+.result-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.result-header h2{font-size:16px;font-weight:600}.result-count{font-size:13px;color:var(--text2)}
+.save-btn{padding:8px 18px;border-radius:20px;font-size:13px;font-weight:500;background:var(--accent);color:#fff;border:none;cursor:pointer}.save-btn:hover{background:var(--accent2)}
+.person-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);margin-bottom:10px;overflow:hidden}
+.person-header{display:flex;align-items:center;gap:12px;padding:14px 18px;cursor:pointer;transition:background .15s}.person-header:hover{background:var(--surface2)}
+.person-avatar{width:36px;height:36px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0}
+.person-info{flex:1;min-width:0}.person-name{font-size:14px;font-weight:600;margin-bottom:2px}.person-meta{font-size:12px;color:var(--text2)}
+.person-chips{display:flex;gap:6px;align-items:center;flex-shrink:0}
+.p-chip{font-size:11px;font-weight:500;padding:3px 9px;border-radius:20px}
+.pc-green{background:var(--accent-l);color:var(--accent)}.pc-blue{background:var(--blue-l);color:var(--blue)}.pc-amber{background:var(--amber-l);color:var(--amber)}
+.p-days{font-family:var(--mono);font-size:18px;font-weight:500;color:var(--accent);flex-shrink:0}
+.toggle-icon{color:var(--text3);transition:transform .2s;font-size:12px;flex-shrink:0}.toggle-icon.open{transform:rotate(180deg)}
+.person-detail{display:none;border-top:1px solid var(--border);padding:16px 18px}.person-detail.open{display:block}
+.detail-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.detail-metric{background:var(--surface2);border-radius:var(--r);padding:10px 12px}
+.dm-label{font-size:11px;color:var(--text3);margin-bottom:3px}.dm-val{font-size:16px;font-weight:600;font-family:var(--mono)}.dm-val.green{color:var(--accent)}
+.formula-mini{display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--surface2);border-radius:var(--r);padding:10px 14px;font-size:12px;margin-bottom:16px}
+.fm-chip{padding:3px 8px;border-radius:4px;font-weight:500;font-family:var(--mono)}
+.detail-tables{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.detail-table-wrap h4{font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em}
+.dtable{width:100%;border-collapse:collapse;font-size:12px}
+.dtable th{text-align:left;padding:6px 8px;color:var(--text3);border-bottom:1px solid var(--border);font-weight:500;white-space:nowrap}
+.dtable td{padding:6px 8px;border-bottom:1px solid var(--border);white-space:nowrap}.dtable tr:last-child td{border-bottom:none}
+.dtable td.num,.dtable th.num{text-align:right;font-family:var(--mono)}
+.dtable tfoot td{font-weight:600;border-top:1px solid var(--border2);background:var(--surface2);border-bottom:none}
+.err-card{background:var(--red-l);border:1px solid #e8c0c0;border-radius:var(--r);padding:10px 14px;font-size:13px;color:var(--red);margin-bottom:10px}
+.special-tag{display:inline-block;font-size:11px;padding:2px 7px;background:var(--amber-l);color:var(--amber);border-radius:3px;margin-left:4px}
+.history-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.5rem}
+.hs-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:1.25rem}
+.hs-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.hs-val{font-size:24px;font-weight:600;font-family:var(--mono)}.hs-val.green{color:var(--accent)}
+.history-toolbar{display:flex;align-items:center;gap:10px;margin-bottom:1rem}
+.history-toolbar input{flex:1;height:36px;padding:0 12px;font-size:13px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--sans)}
+.history-toolbar input:focus{outline:none;border-color:var(--accent)}
+.clear-btn{padding:8px 14px;border-radius:8px;font-size:12px;font-weight:500;background:var(--surface);border:1px solid var(--border2);color:var(--red);cursor:pointer;white-space:nowrap}.clear-btn:hover{background:var(--red-l)}
+.export-btn{padding:8px 14px;border-radius:8px;font-size:12px;font-weight:500;background:var(--accent);border:none;color:#fff;cursor:pointer;white-space:nowrap}.export-btn:hover{background:var(--accent2)}
+.history-table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;overflow-x:auto}
+.htable{width:100%;border-collapse:collapse;font-size:13px}
+.htable th{text-align:left;padding:10px 14px;color:var(--text3);border-bottom:1px solid var(--border);font-weight:500;background:var(--surface2);white-space:nowrap}
+.htable td{padding:10px 14px;border-bottom:1px solid var(--border);white-space:nowrap}.htable tr:last-child td{border-bottom:none}
+.htable td.num,.htable th.num{text-align:right;font-family:var(--mono)}.htable tr:hover td{background:var(--surface2)}
+.empty-state{text-align:center;padding:4rem 2rem;color:var(--text3)}.empty-state .ei{font-size:40px;margin-bottom:12px}.empty-state p{font-size:14px;line-height:1.6}
+.batch-label{font-size:11px;padding:2px 7px;border-radius:3px;font-family:var(--mono);background:var(--surface2);color:var(--text2)}
+
+.htable th.chk,.htable td.chk{width:36px;text-align:center;padding:8px 6px}
+.del-sel-btn{padding:8px 14px;border-radius:8px;font-size:12px;font-weight:500;background:var(--red-l);border:1px solid #e8c0c0;color:var(--red);cursor:pointer;white-space:nowrap;display:none}
+.del-sel-btn:hover{background:#f5d0d0}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:1000;align-items:center;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border-radius:var(--rl);padding:2rem;max-width:900px;width:95%;max-height:90vh;overflow-y:auto;position:relative}
+.modal-close{position:absolute;top:1rem;right:1rem;background:none;border:none;font-size:20px;cursor:pointer;color:var(--text2);line-height:1}
+.modal-close:hover{color:var(--text)}
+.modal-title{font-size:17px;font-weight:600;margin-bottom:1.5rem;padding-right:2rem}
+
+.field-wrap { display:flex; flex-direction:column; gap:4px; }
+.field-label { font-size:12px; color:var(--text2); }
+.calc-input { width:100%; padding:0 10px; height:36px; font-size:13px; background:var(--surface2); border:0.5px solid var(--border2); border-radius:var(--r); color:var(--text); font-family:var(--sans); }
+.calc-input:focus { outline:none; border-color:var(--accent); }
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-brand">연차정산 <span>대시보드</span></div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage(0)">① 산정 방식 안내</button>
+    <button class="nav-tab" onclick="showPage(1)">② 재직자 연차 산정</button>
+    <button class="nav-tab" onclick="showPage(2)">③ 퇴직자 정산(개인)</button>
+    <button class="nav-tab" onclick="showPage(3)">④ 퇴직자 정산(단체)</button>
+    <button class="nav-tab" onclick="showPage(4)">⑤ 누적 정산 내역</button>
+  </div>
+  <div class="nav-right"><div class="total-badge" id="totalBadge">누적 0명</div></div>
+</nav>
+
+<div class="page active" id="page0">
+  <div class="guide-hero">
+    <h2>퇴직 연차미사용수당 정산 방식 안내</h2>
+    <p>퇴직 시 미사용 연차에 대한 수당은 <strong>입사일 기준</strong>과 <strong>회계연도 기준</strong> 중 근로자에게 유리한 방식으로 지급됩니다.</p>
+  </div>
+  <div class="guide-grid">
+    <div class="gcard">
+      <h3><span class="dot"></span>입사일 기준 연차 산정</h3>
+      <div class="step-list">
+        <div class="step-item"><div class="step-num">1</div><div class="step-text">입사 후 <strong>1개월 개근마다 1일</strong> 발생 (최대 11일, 1년 미만)</div></div>
+        <div class="step-item"><div class="step-num">2</div><div class="step-text">입사 <strong>1주년</strong>에 15일 발생 (전년도 출근율 80% 이상)</div></div>
+        <div class="step-item"><div class="step-num">3</div><div class="step-text"><strong>2년마다 1일씩 가산</strong>, 최대 25일까지 증가</div></div>
+        <div class="step-item"><div class="step-num">4</div><div class="step-text">퇴직일 당일 도래 기념일은 <strong>근로관계 종료</strong>로 연차 미발생</div></div>
+      </div>
+    </div>
+    <div class="gcard">
+      <h3><span class="dot"></span>회계연도 기준 연차 산정</h3>
+      <div class="step-list">
+        <div class="step-item"><div class="step-num">1</div><div class="step-text">매년 <strong>1월 1일</strong>에 전년도 근무분 연차 전액 발생</div></div>
+        <div class="step-item"><div class="step-num">2</div><div class="step-text">입사 <strong>첫 해(연중 입사)</strong>는 소정근로일 비례로 계산</div></div>
+        <div class="step-item"><div class="step-num">3</div><div class="step-text">퇴직연도 발생 연차는 <strong>재직비례 없이 전액 인정</strong></div></div>
+        <div class="step-item"><div class="step-num">4</div><div class="step-text">근속 2년마다 1일 가산, 최대 25일</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="formula-card">
+    <h3>최종 미사용수당 지급 공식</h3>
+    <div class="formula-visual">
+      <div class="fv-chip fv-green">① 누계 차이 (입사일 기준 − 회계연도 기준, 양수만)</div>
+      <span class="fv-op">+</span>
+      <div class="fv-chip fv-blue">② 퇴직연도 회계연도 기준 잔여 연차 (발생 − 사용)</div>
+      <span class="fv-op">=</span>
+      <div class="fv-chip fv-green" style="font-size:14px">최종 지급 일수</div>
+    </div>
+    <div style="margin-top:12px;font-size:13px;color:var(--text2);line-height:1.8">
+      ① 전체 근무기간 누계를 비교하여 입사일 기준이 더 많을 경우에만 그 차이를 추가 지급합니다.<br>
+      ② 퇴직연도 1월 1일에 발생한 연차(전년도 근무 대가)에서 당해 사용분 차감한 잔여일수를 지급합니다.
+    </div>
+  </div>
+  <div class="gcard" style="margin-bottom:12px">
+    <h3><span class="dot"></span>근로기준법 변천사</h3>
+    <div class="law-timeline">
+      <div class="law-era"><div class="era-year">~2005.6.30 입사</div><div class="era-badge era-amber">구법</div><div class="era-desc">월차(제57조, 1개월 개근 시 1일, 1년 미만 제한 없이 계속 발생) + 연차(제59조, 1년 이상 근속자만 — 개근 10일 / 9할이상 출근 8일, 9할 미만 연차 없음). 가산 단위는 <strong>그 연차가 발생하는 시점</strong>이 2005.7.1 이전이면 매1년, 이후면 매2년 (20일 한도)</div></div>
+      <div class="law-era"><div class="era-year">2005.7.1 입사 ~<br>2017.5.29 입사</div><div class="era-badge era-blue">통합기</div><div class="era-desc">월차 폐지·연차 통합(15일). 1년 미만 월차(최대 11일)를 1년차 15일에서 차감</div></div>
+      <div class="law-era"><div class="era-year">2017.5.30 입사~</div><div class="era-badge era-green">현행</div><div class="era-desc">1년 미만 월차 별도 부여 — 15일에서 미차감. 신입사원 최대 26일 사용 가능</div></div>
+    </div>
+    <div class="note-box" style="margin-top:10px">
+      <strong>⚠ 적용 기준 안내</strong>
+      위 구분은 <strong>법 시행일이 아닌 "입사 후 만 1년(2년차) 시점"</strong> 기준입니다. 2018.5.29. 개정법은 고용노동부 설명자료에 따라 "시행일 이후 2년차가 되는 근로자"부터 적용되므로 <strong>2017.5.30. 입사자부터 개정법(미차감) 적용</strong>대상입니다. 2003년 개정(법률 제6974호)은 부칙상 사업장 상시근로자 수에 따라 2004.7.1.~2011년까지 순차 시행되었으나, 본 계산기는 <strong>2005.7.1.(상시 100인 이상 300인 미만 사업장 기준 시행일)을 기준으로 일괄 적용</strong>합니다. 정확한 적용을 위해서는 귀사의 시행일을 별도 확인하시기 바랍니다.
+    </div>
+  </div>
+  <div class="gcard">
+    <h3><span class="dot"></span>무급휴직 시 출근율 산정</h3>
+    <div class="step-list">
+      <div class="step-item"><div class="step-num">1</div><div class="step-text"><strong>소정근로일</strong> = 월~금 중 법정공휴일(대체·임시 포함) 제외 일수</div></div>
+      <div class="step-item"><div class="step-num">2</div><div class="step-text"><strong>1단계</strong> 출근율 = 출근일 / 연간소정근로일 ≥ 80% → <strong>전액 부여</strong></div></div>
+      <div class="step-item"><div class="step-num">3</div><div class="step-text"><strong>1단계 &lt;80%</strong> → <strong>2단계</strong> 실질출근율 = 출근일 / 실질소정근로일 (연간소정 − 무급휴직) 재산정</div></div>
+      <div class="step-item"><div class="step-num">4</div><div class="step-text">2단계 ≥ 80% → <strong>비례 부여</strong> (기준일수 × 실질소정/연간소정) &nbsp;|&nbsp; 2단계 &lt;80% → <strong>월 1일 부여</strong> (§60②) <span style="color:var(--text3)">(대법원 2019.2.14.)</span></div></div>
+    </div>
+  </div>
+  <div class="note-box">
+  <strong>⚠ 유의사항 1 — 퇴직 시 연차 발생</strong>
+  만 1년 근무 후 퇴직 시(예: 25.5.2 입사 → 26.5.1 퇴사), 입사기념일(26.5.2)이 퇴직일 이후이므로 1년차 15일 미발생. 월차 최대 11일만 인정. 2·3년차 퇴직도 동일 원칙 적용.
+</div>
+<div style="background:var(--accent-l);border:1px solid #97c47a;border-radius:var(--r);padding:1rem 1.25rem;margin-top:10px;font-size:12px;line-height:2">
+  <strong style="display:block;margin-bottom:8px;font-size:13px;color:var(--accent2)">✅ 유의사항 2 — 출근간주 기간 (소정근로일 포함, 출근한 것으로 처리)</strong>
+  아래 기간은 실제 근무하지 않았더라도 <strong>출근한 것으로 간주</strong>하므로, 소정근로일수에서 제외하지 않고 출근일수로 산정합니다. (근기법 §60⑥, 2024.10.22. 개정 반영)
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;margin-top:8px">
+    <div>① 업무상 부상·질병으로 인한 산재 휴업기간 (§60⑥1호)</div>
+    <div>② 출산전후휴가 90일(다태아 120일) (§60⑥2호, §74)</div>
+    <div>③ 유산·사산휴가 기간 (§74③)</div>
+    <div>④ 육아휴직 기간 (§60⑥3호, 남녀고용평등법 §19)</div>
+    <div>⑤ 육아기 근로시간 단축 기간 <strong style="color:var(--accent)">[2024.10.22. 신설]</strong></div>
+    <div>⑥ 임신기 근로시간 단축 기간 <strong style="color:var(--accent)">[2024.10.22. 신설]</strong></div>
+    <div>⑦ 배우자 출산휴가 20일 (2025.2.23. 시행, 10일→20일 확대)</div>
+    <div>⑧ 난임치료휴가 기간 (남녀고용평등법 §18의3)</div>
+    <div>⑨ 가족돌봄휴가 기간 <strong style="color:var(--accent)">[출근간주]</strong> (행정해석 여성고용정책과-1843) — 가족돌봄휴직과 다름 주의</div>
+  </div>
+</div>
+<div style="background:var(--blue-l);border:1px solid #b0c8e8;border-radius:var(--r);padding:1rem 1.25rem;margin-top:10px;font-size:12px;line-height:2">
+  <strong style="display:block;margin-bottom:8px;font-size:13px;color:var(--blue)">📌 유의사항 3 — 소정근로일 제외 기간 (근로관계 정지, 출근율 분모에서 제외)</strong>
+  아래 기간은 근로관계의 권리·의무가 정지된 기간으로 <strong>소정근로일수 자체에서 제외</strong>하고 출근율을 산정합니다. (대법원 2013.12.26. 2011다4629, 고용노동부 임금근로시간과-1818)
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;margin-top:8px">
+    <div>① 개인사유 무급휴직 기간 (사용자 승인 하 무급)</div>
+    <div>② 개인 병가·비업무상 질병 무급휴직 기간</div>
+    <div>③ 노동조합 전임자 활동 기간 (근로면제 인정 범위)</div>
+    <div>④ 쟁의행위(파업) 참가 기간 (대법원 2009.12.24.)</div>
+    <div>⑤ 징계에 의한 정직·직위해제 기간</div>
+    <div>⑥ 형사사건 기소에 따른 직위해제 기간</div>
+    <div>⑦ 군복무(입영) 기간 (단체협약 출근간주 규정 없는 경우)</div>
+    <div>⑧ 가족돌봄휴직 기간 (연간 최장 90일, 정부24 공식 안내) — 가족돌봄휴가(10일)와 다름 주의</div>
+    <div>⑨ 기타 개인 사정으로 인한 사용자 승인 무급휴직</div>
+  </div>
+  <div style="margin-top:8px;padding-top:8px;border-top:0.5px solid #b0c8e8;color:var(--blue);font-size:11px">
+    ※ 가족돌봄휴직은 근기법 §60⑥ 출근간주 조항에 명시되지 않아 소정근로일 제외 기간으로 처리합니다 (정부24 공식 안내 기준). 취업규칙·단체협약에 출근간주로 별도 규정한 경우 그 규정이 우선 적용됩니다.<br>
+    ※ 이 계산기의 <strong>무급휴직 입력란</strong>에 위 소정근로일 제외 기간을 입력하면 실질소정근로일수에서 자동 차감됩니다.
+  </div>
+</div>
+</div>
+
+
+<!-- PAGE 1_NEW: 재직자 연차 산정 -->
+<div class="page" id="page1">
+  <div style="max-width:680px;margin:0 auto">
+    <div class="guide-hero" style="margin-bottom:1.2rem">
+      <h2>재직자 연차 발생일수 산정</h2>
+      <p>특정 연도에 재직자의 연차가 며칠 발생하는지 계산합니다. 무급휴직·결근이 있을 때 출근율 기반 비례 산정도 지원합니다.</p>
+    </div>
+
+    <div class="gcard" style="margin-bottom:10px">
+      <h3><span class="dot"></span>기본 설정</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+        <div class="field-wrap">
+          <label class="field-label">산정 연도 (연차가 발생하는 연도)</label>
+          <input type="number" id="yr_year" value="2026" min="2000" max="2100" class="calc-input" placeholder="예: 2026">
+        </div>
+        <div class="field-wrap">
+          <label class="field-label">발생 기준</label>
+          <select id="yr_basis" class="calc-input" onchange="yrBasisChange()">
+            <option value="fiscal">회계연도 기준 (1월 1일 일괄 발생)</option>
+            <option value="hire">입사일 기준 (입사 기념일 발생)</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="field-wrap">
+          <label class="field-label">입사일</label>
+          <input type="date" id="yr_joinDate" class="calc-input" onchange="yrJoinDateChange()" oninput="autoFormatDate(this)" min="1980-01-01" max="2099-12-31">
+        </div>
+        <div id="yr_earnDateWrap" class="field-wrap" style="display:none">
+          <label class="field-label">입사일 기준 발생일 (자동계산)</label>
+          <input type="text" id="yr_earnDate" class="calc-input" readonly style="background:var(--surface2);color:var(--text3)">
+        </div>
+      </div>
+      <div id="yr_lawBadge" style="margin-top:10px"></div>
+    </div>
+
+    <!-- 출근율 설정 -->
+    <div class="gcard" style="margin-bottom:10px">
+      <h3><span class="dot"></span>출근율 설정 <span style="font-size:11px;font-weight:400;color:var(--text3)">(무급휴직·결근이 있을 때만)</span></h3>
+      <p style="font-size:12px;color:var(--text2);margin-bottom:12px;line-height:1.7">
+        출근율 산정 기간: <strong id="yr_periodLabel">—</strong><br>
+        소정근로일 = 월~금 중 법정공휴일 제외 / 출근율 80% 미만 시 비례 산정
+      </p>
+
+      <!-- 무급휴직 -->
+      <div style="margin-bottom:12px">
+        <div style="font-size:12px;font-weight:500;color:var(--text);margin-bottom:8px">무급휴직 기간</div>
+        <div style="display:flex;gap:8px;align-items:flex-end;flex-wrap:wrap;margin-bottom:6px">
+          <div class="field-wrap" style="flex:1;min-width:130px"><label class="field-label">시작일</label><input type="date" id="yr_unpaidStart" class="calc-input" oninput="autoFormatDate(this)" min="1980-01-01" max="2099-12-31"></div>
+          <div class="field-wrap" style="flex:1;min-width:130px"><label class="field-label">종료일</label><input type="date" id="yr_unpaidEnd" class="calc-input" oninput="autoFormatDate(this)" min="1980-01-01" max="2099-12-31"></div>
+          <button onclick="yrAddUnpaid()" style="height:36px;padding:0 12px;font-size:12px;background:var(--surface2);border:0.5px solid var(--border2);border-radius:7px;cursor:pointer;white-space:nowrap;color:var(--text)">+ 추가</button>
+        </div>
+        <div id="yr_unpaidList"></div>
+      </div>
+
+      <!-- 결근일수 직접 입력 -->
+      <div style="border-top:0.5px solid var(--border);padding-top:12px">
+        <div style="font-size:12px;font-weight:500;color:var(--text);margin-bottom:8px">결근일수 직접 입력 <span style="font-size:11px;font-weight:400;color:var(--text3)">(무급휴직 외 단순 결근)</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="field-wrap">
+            <label class="field-label">결근일수 (소정근로일 기준)</label>
+            <input type="number" id="yr_absentDays" min="0" value="0" class="calc-input">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-bottom:1.2rem">
+      <button onclick="runYrCalc()" style="flex:1;height:44px;font-size:14px;font-weight:500;background:var(--accent);color:#fff;border:none;border-radius:var(--rl);cursor:pointer">
+        연차 발생일수 계산하기
+      </button>
+      <button onclick="resetYrForm()" style="width:80px;height:44px;font-size:13px;font-weight:500;background:var(--surface2);color:var(--text2);border:0.5px solid var(--border2);border-radius:var(--rl);cursor:pointer">
+        초기화
+      </button>
+    </div>
+
+    <!-- 결과 -->
+    <div id="yr_result" style="display:none">
+      <div style="background:var(--accent);color:#fff;border-radius:var(--rl);padding:1rem 1.5rem;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:13px;opacity:.8" id="yr_resultLabel">연차 발생일수</div>
+        <div style="font-size:22px;font-weight:600;font-family:var(--mono);margin:4px 0" id="yr_resultDays">0</div>
+        <div style="font-size:13px;opacity:.8">일</div>
+      </div>
+      <div class="gcard" style="margin-bottom:10px">
+        <h3><span class="dot"></span>산정 근거</h3>
+        <div id="yr_resultDetail" style="font-size:13px;color:var(--text);line-height:2"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px" id="yr_metrics"></div>
+    </div>
+
+  </div>
+</div>
+<!-- PAGE 2_NEW: 개인 계산기 -->
+<div class="page" id="page2">
+  <div style="max-width:680px;margin:0 auto">
+
+    <div class="guide-hero" style="margin-bottom:1.2rem">
+      <h2>개인 연차 계산기</h2>
+      <p>입사일과 퇴직일만 입력하면 미사용수당 지급일수를 즉시 계산합니다.</p>
+    </div>
+
+    <!-- 인적 정보 -->
+    <div class="gcard" style="margin-bottom:10px">
+      <h3><span class="dot"></span>인적 정보 <span style="font-size:11px;font-weight:400;color:var(--text3)">(누적 내역 저장 시 사용)</span></h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+        <div class="field-wrap">
+          <label class="field-label">이름</label>
+          <input type="text" id="calc_name" class="calc-input" placeholder="홍길동">
+        </div>
+        <div class="field-wrap">
+          <label class="field-label">사번</label>
+          <input type="text" id="calc_empId" class="calc-input" placeholder="EMP001">
+        </div>
+        <div class="field-wrap">
+          <label class="field-label">소속</label>
+          <input type="text" id="calc_dept" class="calc-input" placeholder="커넥트웨이브">
+        </div>
+        <div class="field-wrap">
+          <label class="field-label">팀</label>
+          <input type="text" id="calc_team" class="calc-input" placeholder="HRM팀">
+        </div>
+      </div>
+    </div>
+
+    <!-- 입력 섹션 -->
+    <div class="gcard" style="margin-bottom:10px">
+      <h3><span class="dot"></span>기본 정보</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+        <div class="field-wrap">
+          <label class="field-label">입사일</label>
+          <input type="date" id="calc_joinDate" class="calc-input" onchange="calcOnDateChange()" oninput="autoFormatDate(this)" min="1980-01-01" max="2099-12-31">
+        </div>
+        <div class="field-wrap">
+          <label class="field-label">퇴직일 (마지막 근무일)</label>
+          <input type="date" id="calc_retireDate" class="calc-input" oninput="autoFormatDate(this)" min="1980-01-01" max="2099-12-31">
+        </div>
+      </div>
+      <div id="calc_lawBadge" style="margin-bottom:12px"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="field-wrap">
+          <label class="field-label">퇴직연도 연차 사용일수</label>
+          <input type="number" id="calc_usedLeave" min="0" step="0.25" value="0" class="calc-input">
+        </div>
+        <div class="field-wrap">
+          <label class="field-label">보상휴가 지급일수 <span style="font-size:11px;color:var(--text3);font-weight:400">(미사용 보상휴가)</span></label>
+          <input type="number" id="calc_compLeave" min="0" step="0.25" value="0" class="calc-input">
+        </div>
+      </div>
+    </div>
+
+    <!-- 무급휴직 -->
+    <div class="gcard" style="margin-bottom:10px">
+      <h3><span class="dot"></span>무급휴직 (해당 시만)</h3>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <label style="position:relative;width:36px;height:20px;cursor:pointer;flex-shrink:0">
+          <input type="checkbox" id="calc_unpaidToggle" onchange="calcToggleUnpaid(this)" style="opacity:0;width:0;height:0">
+          <span id="calc_toggleSlider" style="position:absolute;inset:0;background:var(--border2);border-radius:10px;transition:.2s"></span>
+          <span id="calc_toggleDot" style="position:absolute;width:14px;height:14px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s"></span>
+        </label>
+        <span style="font-size:13px">무급휴직 기간이 있습니다</span>
+      </div>
+      <div id="calc_unpaidBlock" style="display:none">
+        <div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:8px;flex-wrap:wrap">
+          <div class="field-wrap" style="flex:1;min-width:130px"><label class="field-label">시작일</label><input type="date" id="calc_unpaidStart" class="calc-input" oninput="autoFormatDate(this)" min="1980-01-01" max="2099-12-31"></div>
+          <div class="field-wrap" style="flex:1;min-width:130px"><label class="field-label">종료일</label><input type="date" id="calc_unpaidEnd" class="calc-input" oninput="autoFormatDate(this)" min="1980-01-01" max="2099-12-31"></div>
+          <button onclick="calcAddUnpaid()" style="height:36px;padding:0 12px;font-size:12px;background:var(--surface2);border:0.5px solid var(--border2);border-radius:7px;cursor:pointer;white-space:nowrap;color:var(--text)">+ 추가</button>
+        </div>
+        <div id="calc_unpaidList"></div>
+      </div>
+    </div>
+
+    <!-- 결근일수 -->
+    <div class="gcard" style="margin-bottom:10px">
+      <h3><span class="dot"></span>결근일수 <span style="font-size:11px;font-weight:400;color:var(--text3)">(무급휴직 외 단순 결근)</span></h3>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <label style="position:relative;width:36px;height:20px;cursor:pointer;flex-shrink:0">
+          <input type="checkbox" id="calc_absentToggle" onchange="calcToggleAbsent(this)" style="opacity:0;width:0;height:0">
+          <span id="calc_absentSlider" style="position:absolute;inset:0;background:var(--border2);border-radius:10px;transition:.2s"></span>
+          <span id="calc_absentDot" style="position:absolute;width:14px;height:14px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s"></span>
+        </label>
+        <span style="font-size:13px">결근일수가 있습니다</span>
+      </div>
+      <div id="calc_absentBlock" style="display:none">
+        <p style="font-size:12px;color:var(--text2);margin-bottom:10px;line-height:1.7">
+          결근 기간을 입력하세요. 각 기간의 소정근로일수를 자동 계산하여 출근율에 반영합니다.<br>
+          <span style="color:var(--text3);font-size:11px">※ 무급휴직 기간과 겹치는 날은 이미 처리되므로 별도 입력 불필요</span>
+        </p>
+        <div style="display:flex;gap:8px;align-items:flex-end;margin-bottom:8px;flex-wrap:wrap">
+          <div class="field-wrap" style="flex:1;min-width:130px">
+            <label class="field-label">결근 시작일</label>
+            <input type="date" id="calc_absentStart" class="calc-input" oninput="autoFormatDate(this)" min="1980-01-01" max="2099-12-31">
+          </div>
+          <div class="field-wrap" style="flex:1;min-width:130px">
+            <label class="field-label">결근 종료일</label>
+            <input type="date" id="calc_absentEnd" class="calc-input" oninput="autoFormatDate(this)" min="1980-01-01" max="2099-12-31">
+          </div>
+          <button onclick="calcAddAbsent()" style="height:36px;padding:0 12px;font-size:12px;background:var(--surface2);border:0.5px solid var(--border2);border-radius:7px;cursor:pointer;white-space:nowrap;color:var(--text)">+ 추가</button>
+        </div>
+        <div id="calc_absentList"></div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-bottom:1.2rem">
+      <button onclick="runCalc()" style="flex:1;height:44px;font-size:14px;font-weight:500;background:var(--accent);color:#fff;border:none;border-radius:var(--rl);cursor:pointer">
+        계산하기
+      </button>
+      <button onclick="resetCalcForm()" style="width:80px;height:44px;font-size:13px;font-weight:500;background:var(--surface2);color:var(--text2);border:0.5px solid var(--border2);border-radius:var(--rl);cursor:pointer">
+        초기화
+      </button>
+    </div>
+
+    <!-- 결과 -->
+    <div id="calc_result" style="display:none">
+      <!-- 최종 결과 카드 -->
+      <div style="background:var(--accent);color:#fff;border-radius:var(--rl);padding:1rem 1.5rem;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">
+        <div style="font-size:13px;opacity:.8" id="calc_resultLabel">미사용연차수당 지급 대상</div>
+        <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:22px;font-weight:600;font-family:var(--mono)" id="calc_finalPay">0</span><span style="font-size:13px;opacity:.8">일</span></div>
+      </div>
+
+      <div id="calc_compLeaveBox" style="display:none;background:var(--surface2);border-radius:var(--rl);padding:0.7rem 1.2rem;margin-bottom:10px;align-items:center;justify-content:space-between">
+        <div style="font-size:12px;color:var(--text2)">➕ 보상휴가 지급일수</div>
+        <div style="display:flex;align-items:baseline;gap:4px"><span style="font-size:16px;font-weight:600;font-family:var(--mono);color:var(--text)" id="calc_compLeaveVal">0</span><span style="font-size:12px;color:var(--text3)">일</span></div>
+      </div>
+
+      <div id="calc_totalBox" style="display:none;background:var(--accent-l);border-radius:var(--rl);padding:0.8rem 1.2rem;margin-bottom:10px;align-items:center;justify-content:space-between">
+        <div style="font-size:13px;color:var(--accent);font-weight:600">🧾 총 지급일수 (미사용연차수당 + 보상휴가)</div>
+        <div style="display:flex;align-items:baseline;gap:4px"><span style="font-size:20px;font-weight:700;font-family:var(--mono);color:var(--accent)" id="calc_totalVal">0</span><span style="font-size:13px;color:var(--accent)">일</span></div>
+      </div>
+
+      <!-- 정산 공식 -->
+      <div class="gcard" style="margin-bottom:10px">
+        <h3><span class="dot"></span>정산 공식</h3>
+        <div id="calc_formula" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;background:var(--surface2);border-radius:var(--r);padding:10px 14px;font-size:12px;margin-bottom:10px"></div>
+        <div id="calc_formulaNote" style="font-size:12px;color:var(--text2);line-height:1.8"></div>
+      </div>
+
+      <!-- 요약 수치 -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px" id="calc_metrics"></div>
+
+      <!-- 상세 테이블 토글 -->
+      <div class="gcard">
+        <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleCalcDetail()">
+          <h3 style="margin-bottom:0"><span class="dot"></span>연도별 발생 내역 상세</h3>
+          <span id="calc_detailToggleIcon" style="font-size:11px;color:var(--text3)">▼ 펼치기</span>
+        </div>
+        <div id="calc_detailBlock" style="display:none;margin-top:1rem">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div>
+              <h4 style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px;text-transform:uppercase">입사일 기준</h4>
+              <div style="overflow-x:auto"><table class="dtable" id="calc_hTable"></table></div>
+            </div>
+            <div>
+              <h4 style="font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px;text-transform:uppercase">회계연도 기준</h4>
+              <div style="overflow-x:auto"><table class="dtable" id="calc_fTable"></table></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 저장 버튼 -->
+      <button onclick="saveCalcResult()" id="calc_saveBtn" style="width:100%;height:40px;font-size:13px;font-weight:500;background:var(--surface);border:0.5px solid var(--border2);border-radius:var(--r);cursor:pointer;margin-top:10px;color:var(--text)">
+        💾 이 결과를 누적 내역에 저장
+      </button>
+    </div>
+
+  </div>
+</div>
+
+
+<div class="page" id="page3">
+  <div class="upload-zone" id="uploadZone"
+    ondragover="event.preventDefault();this.classList.add('drag')"
+    ondragleave="this.classList.remove('drag')"
+    ondrop="handleDrop(event)">
+    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" onchange="handleFile(this.files[0])">
+    <div class="upload-icon">📂</div>
+    <div class="upload-title">퇴사자 명단 파일을 업로드하세요</div>
+    <div class="upload-sub">
+      Excel(.xlsx/.xls) 또는 CSV — 드래그하거나 클릭하여 선택<br>
+      필수: <code>이름</code> <code>입사일</code> <code>퇴사일</code><br>
+      선택: <code>사번</code> <code>소속</code> <code>팀명</code> <code>퇴직연도 연차 사용 일수</code><br>
+      무급휴직: <code>무급휴직 여부(O/X)</code> <code>무급휴직 시작1</code> <code>무급휴직 종료1</code> (최대 2기간)<br>
+      결근: <code>결근시작1</code> <code>결근종료1</code> (최대 2기간) &nbsp;|&nbsp; <code>보상휴가 지급일수</code> <code>비고</code><br>
+      <span style="font-size:12px;color:var(--text3)">⬇ 양식 다운로드로 정확한 컬럼명 확인 권장</span>
+    </div>
+  </div>
+  <div style="text-align:center;margin-top:8px">
+    <button class="template-btn" onclick="downloadTemplate()">⬇ 양식 다운로드</button>
+  </div>
+  <div id="uploadResults" style="display:none">
+    <div class="result-header">
+      <div><h2 id="resultTitle">정산 결과</h2><div class="result-count" id="resultCount"></div></div>
+      <button class="save-btn" onclick="saveToHistory()">누적 내역에 저장</button>
+    </div>
+    <div id="resultCards"></div>
+  </div>
+</div>
+
+<div class="page" id="page4">
+  <div style="background:linear-gradient(135deg,#ede9fe,#dbeafe);border:1px solid #c4b5fd;border-radius:12px;padding:12px 16px;margin-bottom:1rem;font-size:13px;color:#4c1d95;display:flex;align-items:center;gap:10px">
+    <span style="font-size:20px">☁️</span>
+    <div><strong>팀 공유 저장소</strong> — 이 페이지에서 저장한 내역은 같은 링크를 쓰는 팀원 모두에게 실시간 공유됩니다. <span style="opacity:.7">🔄 새로고침으로 최신 내역을 불러오세요.</span></div>
+  </div>
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+      <span style="font-size:12px;color:var(--text2)">통계 기준 (퇴사일):</span>
+      <select id="statsYearFilter" onchange="onStatsYearChange()" style="height:30px;padding:0 8px;font-size:12px;border-radius:6px;border:0.5px solid var(--border2);background:var(--surface)">
+        <option value="">전체 연도</option>
+      </select>
+      <select id="statsMonthFilter" onchange="renderHistory()" style="height:30px;padding:0 8px;font-size:12px;border-radius:6px;border:0.5px solid var(--border2);background:var(--surface)">
+        <option value="">전체 월</option>
+        <option value="01">1월</option><option value="02">2월</option><option value="03">3월</option>
+        <option value="04">4월</option><option value="05">5월</option><option value="06">6월</option>
+        <option value="07">7월</option><option value="08">8월</option><option value="09">9월</option>
+        <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
+      </select>
+    </div>
+  </div>
+  <div class="history-stats">
+    <div class="hs-card"><div class="hs-label">총 정산 인원</div><div class="hs-val" id="hTotalPeople">0</div></div>
+    <div class="hs-card"><div class="hs-label">총 정산 일수</div><div class="hs-val green" id="hTotalDays">0</div></div>
+    <div class="hs-card"><div class="hs-label">평균 정산 일수</div><div class="hs-val" id="hAvgDays">0</div></div>
+    <div class="hs-card"><div class="hs-label">정산 배치 수</div><div class="hs-val" id="hBatches">0</div></div>
+  </div>
+
+  <div class="gcard" style="margin-bottom:10px;padding:14px 16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleFilterPanel()">
+      <h3 style="margin-bottom:0"><span class="dot"></span>상세 필터</h3>
+      <span id="filterToggleIcon" style="font-size:11px;color:var(--text3)">▼ 펼치기</span>
+    </div>
+    <div id="filterPanel" style="display:none;margin-top:12px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px">
+        <div class="field-wrap"><label class="field-label">이름</label><input type="text" id="f_name" class="calc-input" oninput="renderHistory()" placeholder="이름 검색"></div>
+        <div class="field-wrap"><label class="field-label">사번</label><input type="text" id="f_empId" class="calc-input" oninput="renderHistory()" placeholder="사번 검색"></div>
+        <div class="field-wrap"><label class="field-label">소속/팀</label><input type="text" id="f_dept" class="calc-input" oninput="renderHistory()" placeholder="소속, 팀 검색"></div>
+        <div class="field-wrap"><label class="field-label">입사일 시작</label><input type="text" id="f_joinFrom" class="calc-input" placeholder="YYYYMMDD" oninput="renderHistory()"></div>
+        <div class="field-wrap"><label class="field-label">입사일 끝</label><input type="text" id="f_joinTo" class="calc-input" placeholder="YYYYMMDD" oninput="renderHistory()"></div>
+        <div class="field-wrap"><label class="field-label">퇴사일 시작</label><input type="text" id="f_retireFrom" class="calc-input" placeholder="YYYYMMDD" oninput="renderHistory()"></div>
+        <div class="field-wrap"><label class="field-label">퇴사일 끝</label><input type="text" id="f_retireTo" class="calc-input" placeholder="YYYYMMDD" oninput="renderHistory()"></div>
+      </div>
+      <button onclick="clearFilters()" style="margin-top:10px;height:32px;padding:0 14px;font-size:12px;background:var(--surface2);border:0.5px solid var(--border2);border-radius:7px;cursor:pointer;color:var(--text)">필터 초기화</button>
+    </div>
+  </div>
+
+  <div class="history-toolbar">
+    <input type="text" id="historySearch" placeholder="통합 검색 (이름, 사번, 팀)..." oninput="renderHistory()">
+    <button class="del-sel-btn" id="delSelBtn" onclick="deleteSelected()">선택 삭제</button>
+    <button id="syncBtn" onclick="renderHistory()" style="padding:8px 14px;border-radius:8px;font-size:12px;font-weight:500;background:var(--surface);border:1px solid #c4b5fd;color:#6d28d9;cursor:pointer;white-space:nowrap">🔄 새로고침</button>
+    <button class="export-btn" onclick="openExcelModal()">엑셀 내보내기</button>
+    <button class="export-btn" onclick="openPdfModal()" style="background:#fef2f2;border-color:#fca5a5;color:#b91c1c">📄 PDF 내보내기</button>
+    <button class="clear-btn" onclick="clearHistory()">전체 초기화</button>
+  </div>
+  <div class="history-table-wrap">
+    <table class="htable">
+      <thead><tr><th class="chk"><input type="checkbox" id="checkAll" onchange="toggleAllCheck(this)"></th><th>배치</th><th>이름</th><th>사번</th><th>소속/팀</th><th>입사일</th><th>퇴사일</th><th class="num">입사일기준</th><th class="num">회계연도기준</th><th class="num">퇴직연도잔여</th><th class="num">최종미사용연차</th><th class="num">보상휴가</th><th class="num">최종 지급<br>(보상휴가+미사용연차)</th><th>비고</th></tr></thead>
+      <tbody id="historyBody"></tbody>
+    </table>
+    <div class="empty-state" id="historyEmpty"><div class="ei">📋</div><p>아직 저장된 정산 내역이 없습니다.<br>② 탭에서 파일을 업로드하고 저장하세요.</p></div>
+  </div>
+</div>
+
+<!-- PDF 내보내기 옵션 모달 -->
+<div class="modal-overlay" id="pdfModalOverlay" onclick="if(event.target===this)closePdfModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1000;align-items:center;justify-content:center">
+  <div style="background:var(--bg);border-radius:16px;padding:1.5rem;width:90%;max-width:420px;max-height:85vh;overflow-y:auto">
+    <h3 style="margin-bottom:14px">📄 PDF 내보내기 옵션</h3>
+
+    <div style="margin-bottom:14px">
+      <div style="font-size:12px;font-weight:500;color:var(--text);margin-bottom:8px">대상</div>
+      <label style="display:flex;align-items:center;gap:8px;padding:8px 0;cursor:pointer"><input type="radio" name="pdfTarget" value="all" checked> 전체 명단</label>
+      <label style="display:flex;align-items:center;gap:8px;padding:8px 0;cursor:pointer"><input type="radio" name="pdfTarget" value="selected"> 선택한 사람만 (<span id="pdfSelectedCount">0</span>명 선택됨)</label>
+    </div>
+
+    <div style="margin-bottom:14px">
+      <div style="font-size:12px;font-weight:500;color:var(--text);margin-bottom:8px">내보내기 형식</div>
+      <label style="display:flex;align-items:center;gap:8px;padding:8px 0;cursor:pointer"><input type="radio" name="pdfFormat" value="summary" checked> 요약 페이지 (명단 표 형식)</label>
+      <label style="display:flex;align-items:center;gap:8px;padding:8px 0;cursor:pointer"><input type="radio" name="pdfFormat" value="detail"> 대상자별 상세 내역 (연도별 발생 내역 포함)</label>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:18px">
+      <button onclick="closePdfModal()" style="flex:1;height:40px;background:var(--surface2);border:0.5px solid var(--border2);border-radius:8px;cursor:pointer;color:var(--text)">취소</button>
+      <button onclick="generatePdf()" style="flex:1;height:40px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:500">PDF 생성</button>
+    </div>
+  </div>
+</div>
+
+<!-- 엑셀 내보내기 옵션 모달 -->
+<div class="modal-overlay" id="excelModalOverlay" onclick="if(event.target===this)closeExcelModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1000;align-items:center;justify-content:center">
+  <div style="background:var(--bg);border-radius:16px;padding:1.5rem;width:90%;max-width:440px;max-height:85vh;overflow-y:auto">
+    <h3 style="margin-bottom:14px">📊 엑셀 내보내기 옵션</h3>
+
+    <div style="margin-bottom:14px">
+      <div style="font-size:12px;font-weight:500;color:var(--text);margin-bottom:8px">대상</div>
+      <label style="display:flex;align-items:center;gap:8px;padding:6px 0;cursor:pointer"><input type="radio" name="excelTarget" value="all" checked onchange="onExcelTargetChange()"> 전체 명단</label>
+      <label style="display:flex;align-items:center;gap:8px;padding:6px 0;cursor:pointer"><input type="radio" name="excelTarget" value="selected" onchange="onExcelTargetChange()"> 선택한 사람만 (<span id="excelSelectedCount">0</span>명 선택됨)</label>
+      <label style="display:flex;align-items:center;gap:8px;padding:6px 0;cursor:pointer"><input type="radio" name="excelTarget" value="month" onchange="onExcelTargetChange()"> 특정 퇴사월만</label>
+      <div id="excelMonthPicker" style="display:none;margin:6px 0 0 26px;display:flex;gap:6px">
+        <select id="excelYear" style="height:30px;padding:0 8px;font-size:12px;border-radius:6px;border:0.5px solid var(--border2)"></select>
+        <select id="excelMonth" style="height:30px;padding:0 8px;font-size:12px;border-radius:6px;border:0.5px solid var(--border2)">
+          <option value="01">1월</option><option value="02">2월</option><option value="03">3월</option>
+          <option value="04">4월</option><option value="05">5월</option><option value="06">6월</option>
+          <option value="07">7월</option><option value="08">8월</option><option value="09">9월</option>
+          <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="margin-bottom:14px">
+      <div style="font-size:12px;font-weight:500;color:var(--text);margin-bottom:8px">내보낼 항목 (요약 시트 컬럼)</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="name" checked> 이름</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="empId" checked> 사번</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="dept" checked> 소속</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="team" checked> 팀</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="joinDate" checked> 입사일</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="retireDate" checked> 퇴사일</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="era" checked> 적용법령</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="hTotal" checked> 입사일기준누계</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="fTotal" checked> 회계연도기준누계</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="diffAdj" checked> 누계차이</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="fYear" checked> 퇴직연도발생</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="usedLeave" checked> 퇴직연도사용</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="fRemain" checked> 퇴직연도잔여</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="finalPay" checked> 최종미사용연차</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="compLeave" checked> 보상휴가지급일수</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="totalPay" checked> 최종 지급(보상휴가+미사용연차)</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="special" checked> 비고</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="batchId" checked> 배치ID</label>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:8px">
+        <button onclick="toggleAllExcelCols(true)" style="font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;padding:0">전체 선택</button>
+        <button onclick="toggleAllExcelCols(false)" style="font-size:11px;color:var(--text3);background:none;border:none;cursor:pointer;padding:0">전체 해제</button>
+      </div>
+    </div>
+
+    <label style="display:flex;align-items:center;gap:8px;padding:6px 0;cursor:pointer;margin-bottom:10px">
+      <input type="checkbox" id="excelIncludeDetail" checked> 상세 발생내역 시트 포함 (대상자 1명당 시트 1개 생성, 입사일기준·회계연도기준 좌우 비교)
+    </label>
+
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button onclick="closeExcelModal()" style="flex:1;height:40px;background:var(--surface2);border:0.5px solid var(--border2);border-radius:8px;cursor:pointer;color:var(--text)">취소</button>
+      <button onclick="generateExcel()" style="flex:1;height:40px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:500">엑셀 생성</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+
+
+// ═══ Supabase 연동 설정 ═══
+const SUPABASE_URL = 'https://wvolctqklbmmlzosexel.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_xRdm-EvBqyln-ZLp0A6vTA_ghRiKtzT';
+
+function sbFetch(method, path, body) {
+  return fetch(SUPABASE_URL + '/rest/v1/' + path, {
+    method: method,
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': method === 'POST' ? 'return=representation' : ''
+    },
+    body: body ? JSON.stringify(body) : undefined
+  }).then(function(r) {
+    if (!r.ok) return r.text().then(function(t) { throw new Error(t); });
+    return r.text().then(function(t) { return t ? JSON.parse(t) : []; });
+  });
+}
+
+const FIXED_HO=['01-01','03-01','05-05','06-06','08-15','10-03','10-09','12-25'];
+const LUNAR_HO={2000:['01-04','01-05','01-06','05-11','09-11','09-12','09-13'],2001:['01-24','01-25','01-26','05-01','10-01','10-02','10-03'],2002:['02-11','02-12','02-13','05-19','09-20','09-21','09-22'],2003:['02-01','02-02','02-03','05-08','09-10','09-11','09-12'],2004:['01-21','01-22','01-23','05-26','09-27','09-28','09-29'],2005:['02-08','02-09','02-10','05-15','09-17','09-18','09-19'],2006:['01-28','01-29','01-30','05-05','10-05','10-06','10-07'],2007:['02-17','02-18','02-19','05-24','09-24','09-25','09-26'],2008:['02-06','02-07','02-08','05-12','09-13','09-14','09-15'],2009:['01-25','01-26','01-27','05-02','10-02','10-03','10-04'],2010:['02-13','02-14','02-15','05-21','09-21','09-22','09-23'],2011:['02-02','02-03','02-04','05-10','09-11','09-12','09-13'],2012:['01-22','01-23','01-24','05-28','09-29','09-30','10-01'],2013:['02-09','02-10','02-11','05-17','09-18','09-19','09-20'],2014:['01-30','01-31','02-01','05-06','09-07','09-08','09-09'],2015:['02-18','02-19','02-20','05-25','09-26','09-27','09-28'],2016:['02-07','02-08','02-09','05-14','09-14','09-15','09-16'],2017:['01-27','01-28','01-29','05-03','10-03','10-04','10-05'],2018:['02-15','02-16','02-17','05-22','09-23','09-24','09-25'],2019:['02-04','02-05','02-06','05-12','09-12','09-13','09-14'],2020:['01-24','01-25','01-26','04-30','09-30','10-01','10-02'],2021:['02-11','02-12','02-13','05-19','09-20','09-21','09-22'],2022:['01-31','02-01','02-02','05-08','09-09','09-10','09-11'],2023:['01-21','01-22','01-23','05-27','09-28','09-29','09-30'],2024:['02-09','02-10','02-11','05-15','09-16','09-17','09-18'],2025:['01-28','01-29','01-30','05-05','10-05','10-06','10-07'],2026:['02-16','02-17','02-18','05-24','09-24','09-25','09-26'],2027:['02-06','02-07','02-08','05-13','10-14','10-15','10-16'],2028:['01-26','01-27','01-28','05-02','10-02','10-03','10-04'],2029:['02-12','02-13','02-14','05-20','09-21','09-22','09-23'],2030:['02-02','02-03','02-04','05-09','09-11','09-12','09-13']};
+const SUBST_HO={2014:['09-10'],2016:['02-10','03-02'],2017:['01-30','10-06'],2018:['09-26'],2019:['02-07','05-06'],2020:['01-27'],2021:['02-15','09-22'],2022:['03-02'],2023:['01-24','05-29'],2024:['02-12','09-18'],2025:['03-03','05-06','10-08'],2026:['03-02','05-25','09-28']};
+const TEMP_HO={2020:['08-17'],2023:['10-02'],2024:['02-09']};
+const _hC={};
+function getHolidays(y){if(!_hC[y]){const s=new Set();FIXED_HO.forEach(d=>s.add(`${y}-${d}`));(LUNAR_HO[y]||[]).forEach(d=>s.add(`${y}-${d}`));(SUBST_HO[y]||[]).forEach(d=>s.add(`${y}-${d}`));(TEMP_HO[y]||[]).forEach(d=>s.add(`${y}-${d}`));_hC[y]=s;}return _hC[y];}
+function addD(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
+function dStr(d){if(!d||isNaN(d.getTime()))return'';return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function fmtD(d){if(!d||isNaN(d.getTime()))return'';return`${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;}
+function isWorkday(d){const w=d.getDay();if(w===0||w===6)return false;return!getHolidays(d.getFullYear()).has(dStr(d));}
+function calDays(s,e){
+  // 역일(달력일수) 기준: 시작일 포함, 종료일 포함
+  const ms = new Date(e) - new Date(s);
+  return Math.round(ms/86400000) + 1;
+}
+function calDaysExclude(s,e,periods){
+  // 무급휴직 기간(역일)을 제외한 역일 수
+  if(!periods||!periods.length) return calDays(s,e);
+  let exclude=0;
+  periods.forEach(p=>{
+    const ps=new Date(p.start),pe2=new Date(p.end);
+    const os=ps>new Date(s)?ps:new Date(s);
+    const oe=pe2<new Date(e)?pe2:new Date(e);
+    if(os<=oe) exclude+=Math.round((oe-os)/86400000)+1;
+  });
+  return calDays(s,e)-exclude;
+}
+function workdaysInRange(s,e){let c=0,cur=new Date(s);const end=new Date(e);while(cur<=end){if(isWorkday(cur))c++;cur=addD(cur,1);}return c;}
+function unpaidWD(s,e,periods){let t=0;for(const p of periods){const ps=new Date(p.start),pe=new Date(p.end);const os=ps<s?new Date(s):new Date(ps),oe=pe>e?new Date(e):new Date(pe);if(os<=oe)t+=workdaysInRange(os,oe);}return t;}
+function calcAttWithAbsent(s,e,periods,hasU,absentDays){
+  const 소정=workdaysInRange(s,e);
+  const 무급=hasU?unpaidWD(s,e,periods):0;
+  const 실질소정=소정-무급;
+  const 출근=Math.max(0,실질소정-absentDays);
+  const 율1단계=소정>0?출근/소정:1;
+  const 율2단계=실질소정>0?출근/실질소정:1;
+  return{소정,무급,실질소정,출근,율:율1단계,율2단계};
+}
+function calcAtt(s,e,periods,hasU){
+  const 소정=workdaysInRange(s,e);
+  const 무급=hasU?unpaidWD(s,e,periods):0;
+  const 실질소정=소정-무급;  // 연간소정 - 무급휴직
+  const 출근=실질소정;       // 출근일 = 실질소정 (결근 없는 경우; 결근은 별도 차감)
+  // 1단계 출근율: 출근일 / 연간소정근로일
+  const 율1단계=소정>0?출근/소정:1;
+  // 2단계 출근율: 출근일 / 실질소정근로일 (무급휴직 제외)
+  const 율2단계=실질소정>0?출근/실질소정:1;
+  return{소정,무급,실질소정,출근,율:율1단계,율2단계};
+}
+function round2(n){ return Math.round(n*100)/100; }
+function annualBase(yr){return yr===1?15:Math.min(15+Math.floor((yr-1)/2),25);}
+
+// ── 구법(~2005.6.30 입사) 연차 계산 (구 근로기준법 제59조, 1997.3.13 기준) ──
+// 1년 이상 근속자: 개근 10일 / 9할(90%)이상 출근 8일 / 9할 미만 0일(연차 없음)
+// 2년 이상 근속 시: 1년 초과 매 1년에 대해 1일 가산, 가산 포함 총 20일 한도
+// 1년 미만 근속자: 연차 없음 (별도로 월차(제57조)가 매월 1일 발생)
+function pre2003Base(yr){
+  // yr: 근속년수(1년차=1)
+  const base = yr; // 가산 전 기준치(아래에서 출근율에 따라 10 또는 8 적용 후 가산)
+  return base;
+}
+function pre2003Leave(yr, att, earnDate){
+  // att: {율, 출근, 소정} - 1년간 출근율
+  // earnDate: 이 연차가 발생하는 시점(다음해 기념일)
+  // 근로기준법 부칙 제5조(2003.9.15 개정): "이 법 시행일전에 발생한 ... 연차유급휴가에 대하여는
+  // 종전의 규정에 의한다" → 시행일(2005.7.1, 본 계산기 기준) 이후 발생하는 연차는 신법(15일+annualBase) 적용.
+  // 즉 입사일이 구법 시기여도, 신법 시행 후 발생하는 연차는 출근율 80% 기준 15일 체계로 전환되며,
+  // 근속년수(yr)는 그대로 누적 적용한다(실무 사례 확인: 4년차부터 annualBase(4)=16일 일치).
+  const cutoffGasan = new Date(2005,6,1); // 2005.7.1
+  if(earnDate && earnDate.getTime() >= cutoffGasan.getTime()){
+    // 신법 전환: 80% 출근율 기준, annualBase(yr) 그대로 사용(매2년 가산, 25일 한도)
+    if(att.율 < 0.8) return null; // null = "신법 체계로 별도 처리 필요"를 의미(80%미만 비례/월1일 등)
+    return annualBase(yr);
+  }
+  // 구법(2005.6.30 이전 발생): 개근10일/9할이상8일, 매1년 가산, 20일 한도
+  const 가산 = Math.max(0, yr-1);
+  let base;
+  if(att.율>=1.0) base=10;
+  else if(att.율>=0.9) base=8;
+  else base=0;
+  if(base===0) return 0;
+  return Math.min(base+가산, 20);
+}
+function calcLeave(base,att,hasU){
+  if(!hasU) return{days:base,prorated:false,monthly:false,att,base};
+  // 1단계: 출근일/연간소정 >= 80% → 전액
+  if(att.율>=0.8) return{days:base,prorated:false,monthly:false,att,base};
+  // 80% 미만 → 2단계: 출근일/실질소정 판단
+  if(att.율2단계>=0.8){
+    // 비례 부여: base × (실질소정/연간소정)
+    const days=Math.ceil(base*att.실질소정/att.소정);
+    return{days,prorated:true,monthly:false,att,base};
+  }
+  // 실질소정도 80% 미만 → 월 1일 (§60②)
+  return{days:0,prorated:false,monthly:true,att,base};
+}
+function getLawEra(jd){
+  // post2018 적용 기준: 입사일이 2018.5.29 개정법 시행 후 최초로 2년차가 되는 노동자부터 적용대상
+  // → "입사일+1년 >= 2018.5.29" → 입사일 >= 2017.5.30 (고용노동부 개정법 설명자료 기준)
+  const oneYearLater=new Date(jd);oneYearLater.setFullYear(oneYearLater.getFullYear()+1);
+  const cutoff2018=new Date(2018,4,29); // 2018.5.29
+  if(oneYearLater.getTime()>=cutoff2018.getTime())return'post2018';
+  // pre2003/mid 경계: 2003년 개정 부칙상 사업장 규모별 시행일이 다르나(2004.7.1~2011년),
+  // 본 계산기는 2005.7.1(상시 100인 이상 300인 미만 사업장 기준)을 기준으로 일괄 적용
+  const cutoffMid=new Date(2005,5,30); // 2005.6.30까지 구법, 2005.7.1부터 신법
+  if(jd.getTime()<=cutoffMid.getTime())return'pre2003';
+  return'mid';
+}
+
+function hireBasis(jd,rd,periods,era,hasU,absentPeriods){
+  const rows=[],rms=rd.getTime();
+  absentPeriods = absentPeriods || [];
+
+  // 월차: 해당 월 개근 여부 체크 (결근 기간 포함 시 해당 월 미발생)
+  function countMC(){
+    let c=0;
+    for(let m=1;m<=11;m++){
+      const ed=new Date(jd);ed.setMonth(ed.getMonth()+m);
+      if(ed.getTime()>rms)break;
+      // 해당 월 구간: 입사일+m-1개월 ~ 입사일+m개월-1일
+      const ms=new Date(jd);ms.setMonth(ms.getMonth()+(m-1));
+      const me=addD(ed,-1);
+      // 결근 있으면 해당 월 미발생
+      const absentWD = absentPeriods.length>0 ? unpaidWD(ms,me,absentPeriods) : 0;
+      if(absentWD===0) c++;
+      // 무급휴직으로 해당 월 소정근로일 전부 없어도 개근 불인정 (실제 근무 없음)
+    }
+    return c;
+  }
+  // 월차 상세 내역 (어느 월이 발생/미발생인지)
+  function getMCDetail(){
+    const detail=[];
+    for(let m=1;m<=11;m++){
+      const ed=new Date(jd);ed.setMonth(ed.getMonth()+m);
+      if(ed.getTime()>rms)break;
+      const ms=new Date(jd);ms.setMonth(ms.getMonth()+(m-1));
+      const me=addD(ed,-1);
+      const absentWD=absentPeriods.length>0?unpaidWD(ms,me,absentPeriods):0;
+      detail.push({month:m, start:ms, end:me, absent:absentWD, earned:absentWD===0});
+    }
+    return detail;
+  }
+  // 구법(pre2003) 전용: 월차(제57조)는 1년 미만 제한 없이 계속 발생.
+  // 단, 2005.6.30 신법 시행으로 월차 조항 자체가 삭제되었으므로,
+  // "퇴직일" 또는 "2005.6.30" 중 이른 시점까지만 월차가 발생한다.
+  function getMCDetailPre2003(){
+    const detail=[];
+    const cutoffMidStart=new Date(2005,6,1); // 2005.7.1 (이 날부터는 월차조항 삭제, 신법 적용)
+    const limitMs = Math.min(rms, cutoffMidStart.getTime());
+    let m=1;
+    while(true){
+      const ed=new Date(jd);ed.setMonth(ed.getMonth()+m);
+      if(ed.getTime()>limitMs)break;
+      const ms=new Date(jd);ms.setMonth(ms.getMonth()+(m-1));
+      const me=addD(ed,-1);
+      const absentWD=absentPeriods.length>0?unpaidWD(ms,me,absentPeriods):0;
+      detail.push({month:m, start:ms, end:me, absent:absentWD, earned:absentWD===0});
+      m++;
+      if(m>1000)break; // 안전장치
+    }
+    return detail;
+  }
+  function annRow(yr){
+    const ed=new Date(jd);ed.setFullYear(ed.getFullYear()+yr);
+    if(ed.getTime()>=rms)return null;
+    const ps=new Date(jd);ps.setFullYear(ps.getFullYear()+(yr-1));
+    const pe=addD(ed,-1);
+    const att=calcAtt(ps,pe,periods,hasU);
+
+    // ── 구법(pre2003): 출근율 90%/100% 기준, 별도 로직 ──
+    if(era==='pre2003'){
+      const cutoffG=new Date(2005,6,1);
+      const isNewLaw=ed.getTime()>=cutoffG.getTime();
+      if(isNewLaw){
+        // 신법 전환(2005.7.1 이후 발생분): 80% 기준 15일 체계로 전환, 근속년수는 그대로 누적
+        const base=annualBase(yr);
+        const r=calcLeave(base,att,hasU);
+        let days=r.days,note='';
+        if(r.monthly){
+          let mc=0;
+          for(let m=0;m<12;m++){
+            const ms=new Date(ps);ms.setMonth(ms.getMonth()+m);
+            const me=new Date(ms);me.setMonth(me.getMonth()+1);me.setDate(me.getDate()-1);
+            if(ms>pe)break;
+            const mAtt=calcAtt(ms,me<pe?me:pe,periods,hasU);
+            if(mAtt.율2단계>=1.0||mAtt.출근>=mAtt.실질소정)mc++;
+          }
+          days=mc;
+          note=`[신법전환] 출근율 ${(att.율*100).toFixed(1)}% (<80%) → 월 개근 ${mc}월×1일`;
+        } else if(r.prorated){
+          note=`[신법전환] 출근율 ${(att.율*100).toFixed(1)}% (<80%) → 비례 ${days}일`;
+        } else {
+          note=`[신법전환] 출근율 ${(att.율*100).toFixed(1)}% (≥80%) → 전액 ${base}일 (매2년 가산 누적)`;
+        }
+        return{period:`${yr}년차`,earnDate:fmtD(ed),range:`${fmtD(ps)}~${fmtD(pe)}`,basis:`신법 ${base}일`,days,_net:undefined,note};
+      }
+      // 구법(2005.6.30 이전 발생분)
+      const days=pre2003Leave(yr,att,ed);
+      const gasanDays=Math.max(0,yr-1);
+      let note=`출근율 ${(att.율*100).toFixed(1)}%`;
+      if(att.율>=1.0)note+=' (개근) → 10일'+(gasanDays>0?` + 가산${gasanDays}일(매1년)`:'');
+      else if(att.율>=0.9)note+=' (9할이상) → 8일'+(gasanDays>0?` + 가산${gasanDays}일(매1년)`:'');
+      else note+=' (9할미만) → 연차 없음 (월차만 인정)';
+      return{period:`${yr}년차`,earnDate:fmtD(ed),range:`${fmtD(ps)}~${fmtD(pe)}`,basis:'구법(10일/8일+가산)',days,_net:undefined,note};
+    }
+
+    const base=annualBase(yr);
+    const r=calcLeave(base,att,hasU);
+    let note='',days=r.days;
+    if(r.monthly){
+      // 실질소정 출근율 80% 미만 → 월 1일 (개근월수 산정)
+      let mc=0;
+      for(let m=0;m<12;m++){
+        const ms=new Date(ps);ms.setMonth(ms.getMonth()+m);
+        const me=new Date(ms);me.setMonth(me.getMonth()+1);me.setDate(me.getDate()-1);
+        if(ms>pe)break;
+        const mAtt=calcAtt(ms,me<pe?me:pe,periods,hasU);
+        if(mAtt.율2단계>=1.0||mAtt.출근>=mAtt.실질소정)mc++;
+      }
+      days=mc;
+      note=`출근율 ${(att.율*100).toFixed(1)}% / 실질출근율 ${(att.율2단계*100).toFixed(1)}% (<80%) → 월 개근 ${mc}월 × 1일`;
+    } else if(r.prorated){
+      note=`출근율 ${(att.율*100).toFixed(1)}% (<80%) / 실질출근율 ${(att.율2단계*100).toFixed(1)}% (≥80%) → 비례 ${days}일 (${base}일×${att.실질소정}/${att.소정})`;
+    } else if(hasU){
+      note=`출근율 ${(att.율*100).toFixed(1)}% (≥80%) → 전액 ${base}일`;
+    }
+    return{period:`${yr}년차`,earnDate:fmtD(ed),range:`${fmtD(ps)}~${fmtD(pe)}`,basis:yr===1?'15일':`${base}일`,days,_net:undefined,note};
+  }
+  const fa=new Date(jd);fa.setFullYear(fa.getFullYear()+1);
+  if(era==='pre2003'){
+    const mcDetailP=getMCDetailPre2003();
+    const mc=mcDetailP.filter(d=>d.earned).length;
+    const mcMissedP=mcDetailP.filter(d=>!d.earned).length;
+    const mcEndLabel = mcDetailP.length>0 ? fmtD(mcDetailP[mcDetailP.length-1].end) : fmtD(addD(fa,-1));
+    if(mc>0||mcMissedP>0)rows.push({period:'월차(제57조)',earnDate:null,range:`${fmtD(jd)}~${mcEndLabel}`,basis:'구법 월차(무제한)',days:mc,note:`${mc}개월 개근 발생`+(mcMissedP>0?` (${mcMissedP}개월 결근 미발생)`:'')+' / 2005.6.30까지 또는 퇴직일까지 매월 발생'});
+    let yr=1;while(true){const r=annRow(yr);if(!r)break;rows.push(r);yr++;if(yr>50)break;}
+    return rows;
+  }
+  if(era==='mid'){
+    const mcDetail=getMCDetail();
+    const mc=mcDetail.filter(d=>d.earned).length;
+    const mcMissed=mcDetail.filter(d=>!d.earned).length;
+    const mcNote=mcMissed>0?`${mc}개월 개근 발생 (${mcMissed}개월 결근 미발생)`:'';
+    const y1=annRow(1);
+    if(mc>0){const d=y1?Math.min(mc,y1.days):0;rows.push({period:'1년미만(월차)',earnDate:null,range:`${fmtD(jd)}~${fmtD(addD(fa,-1))}`,basis:'월 1일',days:mc,note:(y1?`1년차에서 ${d}일 차감`:'')+(mcNote?' / '+mcNote:'')});}
+    if(y1){const d=Math.min(mc,y1.days),net=Math.max(0,y1.days-d);rows.push({...y1,note:`발생 ${y1.days}일 − 차감 ${d}일 = 실지급 ${net}일`+(y1.note?` / ${y1.note}`:''),_net:net});}
+    let yr=2;while(true){const r=annRow(yr);if(!r)break;rows.push(r);yr++;if(yr>50)break;}
+    return rows;
+  }
+  const mcDetail2=getMCDetail();
+  const mc=mcDetail2.filter(d=>d.earned).length;
+  const mcMissed2=mcDetail2.filter(d=>!d.earned).length;
+  if(mc>0||mcMissed2>0)rows.push({period:'1년미만(월차)',earnDate:null,range:`${fmtD(jd)}~${fmtD(addD(fa,-1))}`,basis:'월 1일 별도부여',days:mc,note:`${mc}개월 개근 발생`+(mcMissed2>0?` (${mcMissed2}개월 결근 미발생)`:'')});
+  let yr=1;while(true){const r=annRow(yr);if(!r)break;rows.push(r);yr++;if(yr>50)break;}
+  return rows;
+}
+
+function fiscalBasis(jd,rd,periods,era,hasU,absentPeriods){
+  absentPeriods = absentPeriods || [];
+  const rows=[],jy=jd.getFullYear(),ry=rd.getFullYear();
+  const rms=rd.getTime();
+
+  if(era==='pre2003'){
+    // 구법: 월차(제57조)가 2005.6.30(또는 퇴직일) 까지 무제한 발생 → 회계연도별로 분배해서 표시
+    const cutoffMidStart=new Date(2005,6,1);
+    const limitMs=Math.min(rms, cutoffMidStart.getTime());
+    let m=1, monthList=[];
+    while(true){
+      const ed=new Date(jd);ed.setMonth(ed.getMonth()+m);
+      if(ed.getTime()>limitMs)break;
+      const ms=new Date(jd);ms.setMonth(ms.getMonth()+(m-1));
+      const me=addD(ed,-1);
+      const absentWD=(absentPeriods&&absentPeriods.length>0)?unpaidWD(ms,me,absentPeriods):0;
+      monthList.push({end:me, earned:absentWD===0});
+      m++;
+      if(m>1000)break;
+    }
+    // 발생연도(=월차 만근 확정일이 속한 연도, 즉 me의 연도) 기준으로 집계
+    const byYear={};
+    monthList.forEach(it=>{
+      const y2=it.end.getFullYear()+ (it.end.getMonth()===11&&it.end.getDate()===31?0:0); // 만료월 종료일 기준
+      const yy = new Date(it.end.getTime()+86400000).getFullYear(); // 익일(발생일)의 연도
+      if(!byYear[yy])byYear[yy]={earned:0,missed:0};
+      if(it.earned)byYear[yy].earned++; else byYear[yy].missed++;
+    });
+    Object.keys(byYear).sort().forEach(yy=>{
+      const yNum=parseInt(yy);
+      if(yNum<jy||yNum>ry)return;
+      const info=byYear[yy];
+      rows.push({
+        year:yNum, earnDate:'(월별발생)',
+        prevPeriod:`구법 월차(제57조)`,
+        ten:0, days:info.earned,
+        note:`월차 ${info.earned}개월 개근 발생`+(info.missed>0?` (${info.missed}개월 결근 미발생)`:'')
+      });
+    });
+  } else {
+    // ── 1년 미만 월차: 회계연도 기준에도 입사 후 1개월마다 1일 발생 ──
+    // (1년 미만 구간은 회계연도/입사일 기준 모두 동일하게 월 1일 발생)
+    // 월차: 결근 기간 반영 — 해당 월에 결근 있으면 미발생
+    let mc=0, mcMissed=0;
+    for(let m=1;m<=11;m++){
+      const ed=new Date(jd);ed.setMonth(ed.getMonth()+m);
+      if(ed.getTime()>rms)break;
+      const ms=new Date(jd);ms.setMonth(ms.getMonth()+(m-1));
+      const me=addD(ed,-1);
+      const absentWD=(absentPeriods&&absentPeriods.length>0)?unpaidWD(ms,me,absentPeriods):0;
+      if(absentWD===0) mc++;
+      else mcMissed++;
+    }
+    const firstAnniv=new Date(jd);firstAnniv.setFullYear(firstAnniv.getFullYear()+1);
+    if(mc>0||mcMissed>0){
+      rows.push({
+        year:jy, earnDate:'(월별발생)',
+        prevPeriod:`${fmtD(jd)}~${fmtD(addD(firstAnniv,-1))}`,
+        ten:0, days:mc,
+        note:`1년 미만 월차 ${mc}개월 개근 발생`+(mcMissed>0?` (${mcMissed}개월 결근으로 미발생)`:'')
+      });
+    }
+  }
+
+  // ── 2년차 이후: 매년 1/1 발생 ──
+  for(let y=jy+1;y<=ry;y++){
+    const ps=new Date(y-1,0,1),pe=new Date(y-1,11,31);
+    if(jd>pe)continue;
+    const ten=y-jy,isFirst=(y-1===jy),entMid=(jd.getMonth()>0||jd.getDate()>1);
+    let days,note='';
+
+    // ── 구법(pre2003): 출근율 90%/100% 기준, 가산 별도 로직 ──
+    if(era==='pre2003'){
+      const att=calcAtt(ps,pe,periods,hasU);
+      const earnD=new Date(y,0,1);
+      const cutoffG=new Date(2005,6,1);
+      const isNewLaw=earnD.getTime()>=cutoffG.getTime();
+      if(isFirst&&entMid){
+        days=0;
+        note='구법: 입사 첫 해는 연차 없음 (월차만 발생)';
+      }else if(isNewLaw){
+        // 신법 전환(2005.7.1 이후 발생분): 80% 기준 15일 체계로 전환, 근속년수 누적
+        const yr=ten;
+        const base=annualBase(yr);
+        const r=calcLeave(base,att,hasU);
+        days=r.days;
+        if(r.monthly){
+          let mc=0;
+          for(let m=0;m<12;m++){
+            const ms=new Date(ps);ms.setMonth(ms.getMonth()+m);
+            const me=new Date(ms);me.setMonth(me.getMonth()+1);me.setDate(me.getDate()-1);
+            if(ms>pe)break;
+            const mA=calcAtt(ms,me<pe?me:pe,periods,hasU);
+            if(mA.율2단계>=1.0||mA.출근>=mA.실질소정)mc++;
+          }
+          days=mc;
+          note=`[신법전환] 출근율 ${(att.율*100).toFixed(1)}% (<80%) → 월 개근 ${mc}월×1일`;
+        } else if(r.prorated){
+          note=`[신법전환] 출근율 ${(att.율*100).toFixed(1)}% (<80%) → 비례 ${days}일`;
+        } else {
+          note=`[신법전환] 출근율 ${(att.율*100).toFixed(1)}% (≥80%) → 전액 ${base}일`;
+        }
+      }else{
+        const yr=ten; // 회계연도상 발생 시점의 근속년수
+        days=pre2003Leave(yr,att,earnD);
+        const gasanDays=Math.max(0,yr-1);
+        note=`출근율 ${(att.율*100).toFixed(1)}%`;
+        if(att.율>=1.0)note+=' (개근) → 10일'+(gasanDays>0?` + 가산${gasanDays}일(매1년)`:'');
+        else if(att.율>=0.9)note+=' (9할이상) → 8일'+(gasanDays>0?` + 가산${gasanDays}일(매1년)`:'');
+        else note+=' (9할미만) → 연차 없음';
+      }
+      rows.push({year:y,earnDate:fmtD(new Date(y,0,1)),prevPeriod:`${y-1}.01.01~${y-1}.12.31`,ten,days,note});
+      continue;
+    }
+
+    const base=annualBase(ten-1);
+    if(isFirst&&entMid){
+      // 입사 첫 해 비례
+      // 기본: 역일 기준 (입사후역일 ÷ 전년역일 × 15)
+      // 무급휴직 있을 때: 소정근로일 기준 (출근율 80% 판단 포함)
+      // mid era: 1년 미만 월차를 비례 연차에서 차감 (§60③)
+      // post2018: 미차감 (§60③ 삭제)
+      let rawDays;
+      if(hasU){
+        // 무급휴직 있음 → 소정근로일 기준
+        const 전년소정=workdaysInRange(ps,pe);
+        const 입사후소정=workdaysInRange(jd,pe);
+        const 무급=unpaidWD(jd,pe,periods);
+        const 출근=입사후소정-무급;
+        const 율=입사후소정>0?출근/입사후소정:1;
+        if(율<0.8){
+          rawDays=Math.ceil(15*출근/전년소정);
+          note=`첫해비례(소정) 출근율 ${(율*100).toFixed(1)}% (<80%) → ${출근}/${전년소정}일`;
+        }else{
+          rawDays=Math.ceil(15*입사후소정/전년소정);
+          note=`첫해비례(소정) ${입사후소정}/${전년소정}일`;
+        }
+      }else{
+        // 무급휴직 없음 → 역일 기준 (소수 상태로 월차 차감 후 올림)
+        const 전년역일=calDays(ps,pe);
+        const 입사후역일=calDays(jd,pe);
+        const rawFloat=15*입사후역일/전년역일;
+        note=`첫해비례(역일) ${입사후역일}/${전년역일}일`;
+        if(era==='mid'){
+          // 소수 상태에서 전년도 월차 차감 후 올림 (§60③)
+          let mc1st=0;
+          for(let m=1;m<=11;m++){
+            const ed2=new Date(jd);ed2.setMonth(ed2.getMonth()+m);
+            if(ed2.getTime()>pe.getTime()+86400000||ed2.getTime()>rms)break;
+            const ms2=new Date(jd);ms2.setMonth(ms2.getMonth()+(m-1));
+            const me2=addD(ed2,-1);
+            const absentWD2=(absentPeriods&&absentPeriods.length>0)?unpaidWD(ms2,me2,absentPeriods):0;
+            if(absentWD2===0)mc1st++;
+          }
+          rawDays=Math.max(0,Math.ceil(rawFloat-mc1st));
+          note+=` (소수${rawFloat.toFixed(2)} - 월차${mc1st}일 차감 → 올림 ${rawDays}일)`;
+        }else{
+          rawDays=Math.ceil(rawFloat);
+        }
+        days=rawDays;
+      }
+    }else{
+      const att=calcAtt(ps,pe,periods,hasU);const r=calcLeave(base,att,hasU);days=r.days;
+      if(r.monthly){
+        // 실질 80% 미만 → 월 1일: 개근월 산정
+        let mc=0;
+        for(let m=0;m<12;m++){
+          const ms=new Date(ps);ms.setMonth(ms.getMonth()+m);
+          const me=new Date(ms);me.setMonth(me.getMonth()+1);me.setDate(me.getDate()-1);
+          if(ms>pe)break;
+          const mA=calcAtt(ms,me<pe?me:pe,periods,hasU);
+          if(mA.율2단계>=1.0||mA.출근>=mA.실질소정)mc++;
+        }
+        days=mc;
+        note=`출근율 ${(att.율*100).toFixed(1)}% / 실질 ${(att.율2단계*100).toFixed(1)}% (<80%) → 월 개근 ${mc}월 × 1일`;
+      } else if(r.prorated){
+        note=`출근율 ${(att.율*100).toFixed(1)}% (<80%) / 실질 ${(att.율2단계*100).toFixed(1)}% (≥80%) → 비례 ${days}일`;
+      } else if(hasU){
+        note=`출근율 ${(att.율*100).toFixed(1)}% (≥80%) → 전액 ${base}일`;
+      }
+    }
+    // mid era: 해당 연차 발생 연도(y)의 전년도(y-1)에 발생한 1년 미만 월차 차감
+    // (첫해 비례는 위에서 이미 차감했으므로 제외)
+    if(era==='mid'&&!(isFirst&&entMid)){
+      // 1년 미만 월차 발생 기간: 입사일 ~ 만1년 전날
+      const oneYear=new Date(jd);oneYear.setFullYear(oneYear.getFullYear()+1);
+      const mcStart=new Date(jd);
+      const mcEnd=new Date(oneYear.getTime()-1); // 만1년 전날
+      // 전년도(y-1)에 발생한 월차 수 계산
+      let mcInPrevYear=0;
+      for(let m=1;m<=11;m++){
+        const mcDate=new Date(jd);mcDate.setMonth(mcDate.getMonth()+m);
+        if(mcDate>=oneYear)break; // 만1년 이후는 월차 없음
+        const mcYear=mcDate.getFullYear();
+        if(mcYear===y-1){
+          // 해당 월 개근 여부
+          const mStart=new Date(jd);mStart.setMonth(mStart.getMonth()+(m-1));
+          const mEnd=addD(mcDate,-1);
+          const absentWD=(absentPeriods&&absentPeriods.length>0)?unpaidWD(mStart,mEnd,absentPeriods):0;
+          if(absentWD===0)mcInPrevYear++;
+        }
+      }
+      if(mcInPrevYear>0&&days>0){
+        days=Math.max(0,days-mcInPrevYear);
+        note+=(note?` `:'')+`(1년미만 월차 ${mcInPrevYear}일 차감 → ${days}일)`;
+      }
+    }
+    rows.push({year:y,earnDate:fmtD(new Date(y,0,1)),prevPeriod:`${y-1}.01.01~${y-1}.12.31`,ten,days,note});
+  }
+  return rows;
+}
+
+function sumHire(rows){return rows.reduce((s,r)=>s+(r._net!==undefined?r._net:r.days),0);}
+
+function calcPerson(p){
+  const{joinDate:jd,retireDate:rd,usedLeave=0,unpaidPeriods:periods=[],name,empId,dept,team,special}=p;
+  const era=getLawEra(jd),hasU=periods.length>0;
+  const absPeriods = (p && p.absentPeriods) ? p.absentPeriods : [];
+  const hRows=hireBasis(jd,rd,periods,era,hasU,absPeriods);
+  const fRows=fiscalBasis(jd,rd,periods,era,hasU,absPeriods);
+  const hTotal=sumHire(hRows),fTotal=fRows.reduce((s,r)=>s+r.days,0);
+
+  const ry=rd.getFullYear();
+  // 퇴직연도에 해당하는 모든 row 합산 (월차 row + 1/1 발생 row 동시 존재 가능)
+  const fYear=fRows.filter(r=>r.year===ry).reduce((s,r)=>s+r.days,0);
+
+  // 사용 연차 배분 로직
+  // 회계연도 기준 퇴직연도 발생분에서 먼저 차감, 부족하면 ① 누계차이에서 추가 차감
+  const fRemain=Math.max(0,fYear-usedLeave);           // 회계연도 잔여
+  const usedFromFiscal=Math.min(usedLeave,fYear);       // 회계연도에서 차감된 사용량
+  const usedRemainder=usedLeave-usedFromFiscal;         // 회계연도 발생분으로 못 뺀 사용량
+
+  const diff=hTotal-fTotal;
+  // ① 누계차이: 입사일 기준이 더 많은 만큼에서, 회계연도 잔여로 처리 못한 사용분 추가 차감
+  const diffAdj=Math.max(0,diff-usedRemainder);
+
+  // 최종 지급 = ① (조정 후) + ②
+  const finalPay=diffAdj+fRemain;
+
+  // ── 결근기간 보정 ──
+  const absentPeriods = (p && p.absentPeriods) ? p.absentPeriods : [];
+  const hasAbsent = absentPeriods.length > 0;
+
+  function getAbsent(ps, pe) {
+    if(!hasAbsent) return 0;
+    return unpaidWD(ps, pe, absentPeriods); // 겹치는 소정근로일수 반환
+  }
+
+  let hRowsF = hRows, fRowsF = fRows;
+  if(hasAbsent) {
+    hRowsF = hRows.map(row => {
+      // 월차 row는 hireBasis에서 이미 결근 반영됨 → 여기서 추가 보정 제외
+      if(!row.range || row.period === '월차' || row.period === '1년미만(월차)' || row.period === '1년미만(월차)') return row;
+      const parts = row.range.split('~');
+      if(parts.length < 2) return row;
+      const ps2 = new Date(parts[0].trim().replace(/[.년]/g,'-').replace(/-+$/,''));
+      const pe2 = new Date(parts[1].trim().replace(/[.년]/g,'-').replace(/-+$/,''));
+      if(isNaN(ps2)||isNaN(pe2)) return row;
+      const absent = getAbsent(ps2, pe2);
+      if(absent <= 0) return row;
+      const att2 = calcAttWithAbsent(ps2, pe2, periods, hasU, absent);
+      const base2 = row._net !== undefined ? row._net : row.days;
+      const r2 = calcLeave(base2, att2, true);
+      let note2 = `결근 ${absent}일 반영 / 1단계 ${(att2.율*100).toFixed(1)}%`;
+      if(r2.monthly) note2 += ` → 실질 ${(att2.율2단계*100).toFixed(1)}% → 월 1일`;
+      else if(r2.prorated) note2 += ` → 실질 ${(att2.율2단계*100).toFixed(1)}% → 비례 ${r2.days}일`;
+      else note2 += ` (≥80%) → 전액`;
+      return {...row, days: r2.days, _net: r2.days, note: note2};
+    });
+    fRowsF = fRows.map(row => {
+      const y = row.year; if(!y || row.ten === 0) return row; // 월차row는 제외
+      const ps2 = new Date(y-1,0,1), pe2 = new Date(y-1,11,31);
+      const absent = getAbsent(ps2, pe2);
+      if(absent <= 0) return row;
+      const att2 = calcAttWithAbsent(ps2, pe2, periods, hasU, absent);
+      const r2 = calcLeave(row.days, att2, true);
+      let note2 = `결근 ${absent}일 반영 / 1단계 ${(att2.율*100).toFixed(1)}%`;
+      if(r2.monthly) note2 += ` → 실질 ${(att2.율2단계*100).toFixed(1)}% → 월 1일`;
+      else if(r2.prorated) note2 += ` → 실질 ${(att2.율2단계*100).toFixed(1)}% → 비례 ${r2.days}일`;
+      else note2 += ` (≥80%) → 전액`;
+      return {...row, days: r2.days, note: note2};
+    });
+  }
+
+  const hTotalF = sumHire(hRowsF);
+  const fTotalF = fRowsF.reduce((s,r)=>s+r.days,0);
+  const ry2 = rd.getFullYear();
+  const fYearF = fRowsF.filter(r=>r.year===ry2).reduce((s,r)=>s+r.days,0);
+  const fRemainF = Math.max(0, fYearF - usedLeave);
+  const usedFromFiscalF = Math.min(usedLeave, fYearF);
+  const usedRemainderF = usedLeave - usedFromFiscalF;
+  const diffF = hTotalF - fTotalF;
+  const diffAdjF = Math.max(0, diffF - usedRemainderF);
+  const finalPayF = diffAdjF + fRemainF;
+
+  return{name,empId,dept,team,special,joinDate:jd,retireDate:rd,era,
+    hTotal:hTotalF,fTotal:fTotalF,diff:diffF,diffAdj:diffAdjF,
+    fYear:fYearF,usedLeave:round2(usedLeave),fRemain:round2(fRemainF),usedRemainder:round2(usedRemainderF),
+    finalPay:round2(finalPayF),hRows:hRowsF,fRows:fRowsF,hasU,periods};
+}
+
+// ── 파일 파싱 (컬럼명 유연 대응) ──
+function parseDate(v){
+  if(v===null||v===undefined||v==='')return null;
+  if(v instanceof Date){return isNaN(v.getTime())?null:new Date(v.getFullYear(),v.getMonth(),v.getDate());}
+  if(typeof v==='number'&&!isNaN(v)&&v>1000){const d=new Date((v-25569)*86400000);return new Date(d.getFullYear(),d.getMonth(),d.getDate());}
+  const s=String(v).trim();
+  if(!s||s==='NaT'||s==='null'||s==='undefined')return null;
+  const m=s.match(/(\d{4})[-./년](\d{1,2})[-./월]?(\d{1,2})/);
+  if(m){const d=new Date(parseInt(m[1]),parseInt(m[2])-1,parseInt(m[3]));if(!isNaN(d.getTime()))return d;}
+  const direct=new Date(s);
+  return!isNaN(direct.getTime())?new Date(direct.getFullYear(),direct.getMonth(),direct.getDate()):null;
+}
+
+function parseRow(row){
+  const norm=s=>String(s||'').trim().replace(/\s+/g,'');
+  const get=keys=>{
+    for(const k of keys){
+      const nk=norm(k);
+      const found=Object.keys(row).find(rk=>norm(rk)===nk);
+      if(found!==undefined&&row[found]!==undefined&&row[found]!==null&&row[found]!=='')return row[found];
+    }
+    return null;
+  };
+  const name=get(['이름','성명','Name'])||'';
+  const empId=get(['사번','직원번호','EmpId'])||'';
+  const dept=get(['소속','사업부','부서','Dept'])||'';       // 소속·사업부·부서 모두 허용
+  const team=get(['팀명','팀','Team'])||'';                  // 팀명·팀 모두 허용
+  const joinDate=parseDate(get(['입사일','입사일자','JoinDate']));
+  const retireDate=parseDate(get(['퇴사일','퇴직일','퇴사일자','RetireDate']));
+  const usedLeave=parseFloat(get(['퇴직연도연차사용일수','퇴직연도사용연차','연차사용일수','사용연차','UsedLeave']))||0;
+  const compLeave=parseFloat(get(['보상휴가지급일수','보상휴가','보상휴가일수','CompLeave']))||0;
+  const special=get(['비고','특이사항','Note','Remark'])||'';
+  const unpaidPeriods=[];
+  // 형식A: 무급휴직여부(O/X) + 단일 시작/종료
+  const yn=norm(String(get(['무급휴직여부','무급여부'])||'')).toUpperCase();
+  if(yn==='O'||yn==='Y'||yn==='예'){
+    const s=parseDate(get(['무급휴직시작','무급휴직시작일','무급시작']));
+    const e=parseDate(get(['무급휴직종료','무급휴직종료일','무급종료']));
+    if(s&&e)unpaidPeriods.push({start:dStr(s),end:dStr(e)});
+  }
+  // 형식B: 무급휴직시작1~5 (복수)
+  for(let i=1;i<=5;i++){
+    const s=parseDate(get([`무급휴직시작${i}`,`무급시작${i}`]));
+    const e=parseDate(get([`무급휴직종료${i}`,`무급종료${i}`]));
+    if(s&&e)unpaidPeriods.push({start:dStr(s),end:dStr(e)});
+  }
+  // 결근 기간 파싱 (결근시작1~5 / 결근종료1~5)
+  const absentPeriods=[];
+  for(let i=1;i<=5;i++){
+    const s=parseDate(get([`결근시작${i}`,`결근기간시작${i}`]));
+    const e=parseDate(get([`결근종료${i}`,`결근기간종료${i}`]));
+    if(s&&e)absentPeriods.push({start:dStr(s),end:dStr(e)});
+  }
+  return{name,empId,dept,team,joinDate,retireDate,usedLeave,unpaidPeriods,absentPeriods,special,compLeave};
+}
+
+let currentResults=[];
+function handleDrop(ev){ev.preventDefault();document.getElementById('uploadZone').classList.remove('drag');const f=ev.dataTransfer.files[0];if(f)handleFile(f);}
+function handleFile(file){
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{const wb=XLSX.read(e.target.result,{type:'binary',cellDates:true});const ws=wb.Sheets[wb.SheetNames[0]];processData(XLSX.utils.sheet_to_json(ws,{raw:false,defval:''}));}
+    catch(err){alert('파일 파싱 오류: '+err.message);}
+  };
+  reader.readAsBinaryString(file);
+}
+
+function processData(data){
+  currentResults=[];
+  const cards=document.getElementById('resultCards');cards.innerHTML='';let errCount=0;
+  data.forEach((row,idx)=>{
+    const p=parseRow(row);
+    if(!p.name||!p.joinDate||!p.retireDate){
+      errCount++;
+      const miss=[!p.name&&'이름',!p.joinDate&&'입사일',!p.retireDate&&'퇴사일'].filter(Boolean);
+      cards.innerHTML+=`<div class="err-card">⚠ ${idx+2}행: ${miss.join(', ')} 누락 또는 날짜 형식 오류 (이름: ${p.name||'없음'})</div>`;
+      return;
+    }
+    if(p.retireDate<=p.joinDate){errCount++;cards.innerHTML+=`<div class="err-card">⚠ ${p.name}: 퇴사일이 입사일보다 빠릅니다.</div>`;return;}
+    try{const res=calcPerson({...p,absentPeriods:p.absentPeriods||[]});res.compLeave=p.compLeave||0;currentResults.push(res);cards.innerHTML+=renderCard(res,currentResults.length-1);}
+    catch(err){errCount++;cards.innerHTML+=`<div class="err-card">⚠ ${p.name} 계산 오류: ${err.message}</div>`;}
+  });
+  const total=currentResults.length;
+  document.getElementById('resultTitle').textContent=`정산 결과 (${total}명)`;
+  document.getElementById('resultCount').textContent=`처리 완료: ${total}명${errCount?` | 오류: ${errCount}건`:''}`;
+  document.getElementById('uploadResults').style.display='block';
+}
+
+function renderCard(res,idx){
+  const av=res.name?res.name.slice(0,2):'??';
+  const eraLabel={'pre2003':'구법','mid':'통합기','post2018':'현행'}[res.era];
+  const eraColor={'pre2003':'pc-amber','mid':'pc-blue','post2018':'pc-green'}[res.era];
+  const hTr=res.hRows.map(r=>{
+    const actual=r._net!==undefined?r._net:r.days;
+    let noteStr=r.note||'';
+    if(r._net!==undefined&&r._net!==r.days)noteStr=`발생 ${r.days}일 → 월차차감 후 ${r._net}일`;
+    return`<tr><td>${r.period}</td><td style="font-size:11px">${r.earnDate||'—'}</td><td class="num" style="color:var(--accent);font-weight:600">${actual}일</td><td style="font-size:11px;color:var(--text3)">${noteStr}</td></tr>`;
+  }).join('');
+  const fTr=res.fRows.map(r=>`<tr><td>${r.year}년</td><td style="font-size:11px">${r.earnDate}</td><td class="num">${r.ten}년차</td><td class="num" style="color:var(--accent);font-weight:500">${r.days}</td><td style="font-size:11px;color:var(--text3)">${r.note||''}</td></tr>`).join('');
+  return`<div class="person-card">
+  <div class="person-header" onclick="tog(${idx})">
+    <div class="person-avatar">${av}</div>
+    <div class="person-info">
+      <div class="person-name">${res.name}${res.empId?` <span style="font-size:12px;color:var(--text3);font-weight:400">${res.empId}</span>`:''}${res.special?`<span class="special-tag">${res.special}</span>`:''}</div>
+      <div class="person-meta">${[res.dept,res.team].filter(Boolean).join(' · ')||'—'} | 입사 ${fmtD(res.joinDate)} · 퇴사 ${fmtD(res.retireDate)}</div>
+    </div>
+    <div class="person-chips">
+      <span class="p-chip ${eraColor}">${eraLabel}</span>
+      ${res.hasU?'<span class="p-chip pc-amber">무급휴직</span>':''}
+      ${res.compLeave>0?`<span class="p-chip pc-blue">보상휴가 ${round2(res.compLeave)}일</span>`:''}
+      <span class="p-days">${round2(res.finalPay)}일</span>
+    </div>
+    <span class="toggle-icon" id="ti${idx}">▼</span>
+  </div>
+  <div class="person-detail" id="pd${idx}">
+    <div class="detail-grid">
+      <div class="detail-metric"><div class="dm-label">입사일 기준 누계</div><div class="dm-val">${res.hTotal}일</div></div>
+      <div class="detail-metric"><div class="dm-label">회계연도 기준 누계</div><div class="dm-val">${res.fTotal}일</div></div>
+      <div class="detail-metric"><div class="dm-label">퇴직연도 발생 (회계연도)</div><div class="dm-val">${res.fYear}일</div></div>
+      <div class="detail-metric"><div class="dm-label">퇴직연도 사용</div><div class="dm-val">${res.usedLeave}일</div></div>
+      <div class="detail-metric"><div class="dm-label">퇴직연도 잔여 (②)</div><div class="dm-val">${res.fRemain}일</div></div>
+      <div class="detail-metric" style="background:var(--accent-l)"><div class="dm-label">최종 지급 일수</div><div class="dm-val green">${res.finalPay}일</div></div>
+    </div>
+    <div class="formula-mini">
+      ${res.diff>0?`<span class="fm-chip" style="background:var(--accent-l);color:var(--accent)">① +${res.diffAdj}일</span>`:`<span class="fm-chip" style="background:var(--surface2);color:var(--text2)">① 0일</span>`}
+      <span style="color:var(--text3)">+</span>
+      <span class="fm-chip" style="background:var(--blue-l);color:var(--blue)">② ${res.fRemain}일</span>
+      <span style="color:var(--text3)">=</span>
+      <strong style="color:var(--accent)">${res.finalPay}일</strong>
+      <span style="font-size:11px;color:var(--text3);margin-left:8px">입사일기준 ${res.hTotal}일 − 회계연도기준 ${res.fTotal}일 = ${res.diff}일 ${res.diff>0?'(추가)':'(추가없음)'}${res.usedRemainder>0?` / 회계연도 초과 사용 ${res.usedRemainder}일 → ①에서 추가 차감`:''}</span>
+    </div>
+    <div class="detail-tables">
+      <div class="detail-table-wrap"><h4>입사일 기준</h4><table class="dtable"><thead><tr><th>구분</th><th>발생일</th><th class="num">실지급</th><th>비고</th></tr></thead><tbody>${hTr}</tbody><tfoot><tr><td colspan="2">합계</td><td class="num">${res.hTotal}일</td><td></td></tr></tfoot></table></div>
+      <div class="detail-table-wrap"><h4>회계연도 기준</h4><table class="dtable"><thead><tr><th>연도</th><th>발생일</th><th class="num">근속</th><th class="num">발생</th><th>비고</th></tr></thead><tbody>${fTr}</tbody><tfoot><tr><td colspan="3">합계</td><td class="num">${res.fTotal}</td><td></td></tr></tfoot></table></div>
+    </div>
+  </div>
+</div>`;
+}
+
+function tog(idx){const pd=document.getElementById('pd'+idx),ti=document.getElementById('ti'+idx);const o=pd.classList.toggle('open');ti.classList.toggle('open',o);}
+
+async function loadHistory(){
+  try{
+    const rows=await sbFetch('GET','leave_settlements?order=id.asc&select=*');
+    return rows.map(r=>({
+      _dbId:r.id,
+      batchId:r.batch_id||'', date:r.saved_date||'',
+      name:r.name||'', empId:r.emp_id||'',
+      dept:r.dept||'', team:r.team||'',
+      joinDate:r.join_date||'', retireDate:r.retire_date||'',
+      era:r.era||'', hasU:r.has_unpaid||false,
+      hTotal:r.h_total||0, fTotal:r.f_total||0,
+      diffAdj:r.diff_adj||0, fYear:r.f_year||0,
+      usedLeave:r.used_leave_float||r.used_leave||0,
+      fRemain:r.f_remain_float||r.f_remain||0,
+      usedRemainder:r.used_remainder||0,
+      finalPay:r.final_pay_float||r.final_pay||0,
+      special:r.special||'', diff:r.diff||0,
+      hRows:r.h_rows||[], fRows:r.f_rows||[],
+      compLeave:r.comp_leave||0
+    }));
+  }catch(e){console.error('loadHistory:',e);return[];}
+}
+
+async function saveToHistory(){
+  if(!currentResults.length){alert('정산 결과가 없습니다.');return;}
+  const btn=document.querySelector('.save-btn');
+  if(btn){btn.disabled=true;btn.textContent='⏳ 저장 중...';}
+  try{
+    const h=await loadHistory();
+    const batchNums=h.map(r=>{const m=String(r.batchId).match(/B(\d+)/);return m?parseInt(m[1]):0;}).filter(n=>n>0);
+    const nextNum=batchNums.length>0?Math.max.apply(null,batchNums)+1:1;
+    const batchId='B'+String(nextNum).padStart(3,'0');
+    const today=new Date().toLocaleDateString('ko-KR');
+    const rows=currentResults.map(res=>({
+      batch_id:batchId, saved_date:today,
+      name:res.name, emp_id:res.empId||'',
+      dept:res.dept||'', team:res.team||'',
+      join_date:fmtD(res.joinDate), retire_date:fmtD(res.retireDate),
+      era:res.era, has_unpaid:res.hasU,
+      h_total:res.hTotal, f_total:res.fTotal,
+      diff_adj:res.diffAdj, f_year:res.fYear,
+      used_leave:Math.floor(res.usedLeave||0), f_remain:Math.floor(res.fRemain||0),
+      used_remainder:Math.floor(res.usedRemainder||0), final_pay:Math.floor(res.finalPay||0),
+      used_leave_float:res.usedLeave||0, f_remain_float:res.fRemain||0,
+      final_pay_float:res.finalPay||0,
+      special:res.special||'', diff:res.diff,
+      h_rows:res.hRows, f_rows:res.fRows,
+      comp_leave:res.compLeave||0
+    }));
+    await sbFetch('POST','leave_settlements',rows);
+    renderHistory();updateBadge();
+    alert(`${currentResults.length}명 저장 완료 (배치: ${batchId}) ☁️ 팀원과 공유됩니다!`);
+  }catch(e){
+    alert('저장 오류: '+e.message);
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent='💾 누적 내역에 저장 (팀 공유)';}
+  }
+}
+
+// 텍스트형 날짜(YYYY.MM.DD 또는 YYYYMMDD)를 비교 가능한 문자열로 정규화
+function normDateStr(s){
+  if(!s) return '';
+  var digits = String(s).replace(/[^\d]/g,'');
+  if(digits.length===8) return digits;
+  return '';
+}
+
+window._historyCache = [];
+
+async function renderHistory(){
+  const h=await loadHistory();
+  window._historyCache = h;
+
+  // 연도 필터 옵션 채우기 (퇴사일 연도 기준)
+  const yearSel = document.getElementById('statsYearFilter');
+  if (yearSel && yearSel.options.length<=1){
+    const years = [...new Set(h.map(r=>{
+      const m=(r.retireDate||'').match(/(\d{4})/);
+      return m?m[1]:null;
+    }).filter(Boolean))].sort().reverse();
+    years.forEach(y=>{
+      const opt=document.createElement('option');
+      opt.value=y; opt.textContent=y+'년';
+      yearSel.appendChild(opt);
+    });
+  }
+
+  const q=(document.getElementById('historySearch').value||'').toLowerCase();
+  const fName=(document.getElementById('f_name').value||'').toLowerCase();
+  const fEmpId=(document.getElementById('f_empId').value||'').toLowerCase();
+  const fDept=(document.getElementById('f_dept').value||'').toLowerCase();
+  const fJoinFrom=normDateStr(document.getElementById('f_joinFrom').value);
+  const fJoinTo=normDateStr(document.getElementById('f_joinTo').value);
+  const fRetireFrom=normDateStr(document.getElementById('f_retireFrom').value);
+  const fRetireTo=normDateStr(document.getElementById('f_retireTo').value);
+  const statsYear=document.getElementById('statsYearFilter').value;
+  const statsMonth=document.getElementById('statsMonthFilter').value;
+
+  let fil = h;
+  if(q) fil = fil.filter(r=>(r.name+r.empId+r.team+r.dept).toLowerCase().includes(q));
+  if(fName) fil = fil.filter(r=>(r.name||'').toLowerCase().includes(fName));
+  if(fEmpId) fil = fil.filter(r=>(r.empId||'').toLowerCase().includes(fEmpId));
+  if(fDept) fil = fil.filter(r=>((r.dept||'')+(r.team||'')).toLowerCase().includes(fDept));
+  if(fJoinFrom) fil = fil.filter(r=>normDateStr(r.joinDate) >= fJoinFrom);
+  if(fJoinTo) fil = fil.filter(r=>normDateStr(r.joinDate) <= fJoinTo);
+  if(fRetireFrom) fil = fil.filter(r=>normDateStr(r.retireDate) >= fRetireFrom);
+  if(fRetireTo) fil = fil.filter(r=>normDateStr(r.retireDate) <= fRetireTo);
+  if(statsYear) fil = fil.filter(r=>{
+    var d = normDateStr(r.retireDate);
+    return d.slice(0,4) === statsYear;
+  });
+  if(statsMonth) fil = fil.filter(r=>{
+    var d = normDateStr(r.retireDate);
+    return d.slice(4,6) === statsMonth;
+  });
+
+  const tbody=document.getElementById('historyBody'),empty=document.getElementById('historyEmpty');
+  if(!fil.length){tbody.innerHTML='';empty.style.display='block';}
+  else{
+    empty.style.display='none';
+    tbody.innerHTML=fil.map((r,i)=>{
+      const realIdx=h.indexOf(r);
+      return`<tr>
+        <td class="chk"><input type="checkbox" class="row-chk" data-idx="${realIdx}" onchange="onChkChange()"></td>
+        <td><span class="batch-label">${r.batchId}</span><br><span style="font-size:11px;color:var(--text3)">${r.date}</span></td>
+        <td style="cursor:pointer;color:var(--accent);font-weight:600" onclick="openHistModal(${realIdx})">${r.name}</td>
+        <td style="font-family:var(--mono);font-size:12px">${r.empId||'—'}</td>
+        <td>${[r.dept,r.team].filter(Boolean).join('/')}</td>
+        <td style="font-family:var(--mono);font-size:12px">${r.joinDate}</td>
+        <td style="font-family:var(--mono);font-size:12px">${r.retireDate}</td>
+        <td class="num">${r.hTotal}</td><td class="num">${r.fTotal}</td>
+        <td class="num">${r.fRemain}</td>
+        <td class="num" style="font-weight:600;color:var(--accent)">${r.finalPay}</td>
+        <td class="num" style="color:var(--text2)">${r.compLeave>0?r.compLeave:'—'}</td>
+        <td class="num" style="font-weight:700;color:#1d4ed8">${round2((r.finalPay||0)+(r.compLeave||0))}</td>
+        <td style="font-size:12px;color:var(--text2)">${r.special||''}</td>
+      </tr>`;
+    }).join('');
+  }
+  // 통계는 필터(검색+상세필터+연도) 반영된 fil 기준으로 표시
+  const total=fil.length,td=fil.reduce((s,r)=>s+r.finalPay,0),bt=new Set(fil.map(r=>r.batchId)).size;
+  document.getElementById('hTotalPeople').textContent=total;
+  document.getElementById('hTotalDays').textContent=td;
+  document.getElementById('hAvgDays').textContent=total?Math.round(td/total*10)/10:0;
+  document.getElementById('hBatches').textContent=bt;
+  updateBadge();
+}
+
+function onStatsYearChange(){ renderHistory(); }
+function toggleFilterPanel(){
+  var panel=document.getElementById('filterPanel');
+  var icon=document.getElementById('filterToggleIcon');
+  var open=panel.style.display==='none';
+  panel.style.display=open?'block':'none';
+  icon.textContent=open?'▲ 접기':'▼ 펼치기';
+}
+function clearFilters(){
+  ['f_name','f_empId','f_dept','f_joinFrom','f_joinTo','f_retireFrom','f_retireTo'].forEach(id=>{
+    document.getElementById(id).value='';
+  });
+  renderHistory();
+}
+
+function toggleAllCheck(el){
+  document.querySelectorAll('.row-chk').forEach(c=>c.checked=el.checked);
+  onChkChange();
+}
+function onChkChange(){
+  const n=document.querySelectorAll('.row-chk:checked').length;
+  const btn=document.getElementById('delSelBtn');
+  btn.style.display=n>0?'inline-flex':'none';
+  btn.textContent=`선택 ${n}명 삭제`;
+  document.getElementById('checkAll').checked=n>0&&n===document.querySelectorAll('.row-chk').length;
+}
+async function deleteSelected(){
+  const checked=[...document.querySelectorAll('.row-chk:checked')];
+  if(!checked.length)return;
+  if(!confirm(`선택한 ${checked.length}명의 정산 내역을 삭제하시겠습니까?`))return;
+  try{
+    const h=await loadHistory();
+    const ids=checked.map(c=>{
+      const idx=parseInt(c.dataset.idx);
+      return h[idx]&&h[idx]._dbId;
+    }).filter(Boolean);
+    if(ids.length) await sbFetch('DELETE','leave_settlements?id=in.('+ids.join(',')+')');
+    renderHistory();
+  }catch(e){alert('삭제 오류: '+e.message);}
+}
+async function updateBadge(){
+  const h=await loadHistory();
+  document.getElementById('totalBadge').textContent=`누적 ${h.length}명`;
+}
+async function clearHistory(){
+  if(!confirm('모든 누적 내역을 초기화하시겠습니까?'))return;
+  try{ await sbFetch('DELETE','leave_settlements?id=gt.0'); }
+  catch(e){ alert('초기화 오류: '+e.message); }
+  renderHistory();
+}
+
+async function openHistModal(idx){
+  const h=await loadHistory(),r=h[idx];
+  if(!r)return;
+  const eraLabel={'pre2003':'구법','mid':'통합기','post2018':'현행'}[r.era]||'';
+  const hRows=(r.hRows||[]).map(row=>`<tr><td>${row.period}</td><td style="font-size:11px">${row.earnDate||'—'}</td><td style="text-align:right;font-family:monospace">${row.days}</td><td style="text-align:right;font-family:monospace;color:var(--accent);font-weight:600">${row._net!==undefined?row._net:row.days}</td><td style="font-size:11px;color:var(--text3)">${row.note||''}</td></tr>`).join('');
+  const fRows=(r.fRows||[]).map(row=>`<tr><td>${row.year}년</td><td style="font-size:11px">${row.earnDate}</td><td style="text-align:right;font-family:monospace">${row.ten}년차</td><td style="text-align:right;font-family:monospace;color:var(--accent);font-weight:600">${row.days}</td><td style="font-size:11px;color:var(--text3)">${row.note||''}</td></tr>`).join('');
+  const hTotal=r.hTotal,fTotal=r.fTotal;
+  document.getElementById('histModalTitle').textContent=`${r.name} 정산 상세 내역`;
+  document.getElementById('histModalBody').innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
+      <div class="detail-metric"><div class="dm-label">입사일 기준 누계</div><div class="dm-val">${hTotal}일</div></div>
+      <div class="detail-metric"><div class="dm-label">회계연도 기준 누계</div><div class="dm-val">${fTotal}일</div></div>
+      <div class="detail-metric"><div class="dm-label">퇴직연도 발생</div><div class="dm-val">${r.fYear||0}일</div></div>
+      <div class="detail-metric"><div class="dm-label">퇴직연도 사용</div><div class="dm-val">${r.usedLeave||0}일</div></div>
+      <div class="detail-metric"><div class="dm-label">퇴직연도 잔여 (②)</div><div class="dm-val">${r.fRemain}일</div></div>
+      <div class="detail-metric" style="background:var(--accent-l)"><div class="dm-label">최종 지급 일수</div><div class="dm-val green">${r.finalPay}일</div></div>
+    </div>
+    <div class="formula-mini" style="margin-bottom:16px">
+      ${(r.diff||0)>0?`<span class="fm-chip" style="background:var(--accent-l);color:var(--accent)">① +${r.diffAdj||0}일</span>`:`<span class="fm-chip" style="background:var(--surface2);color:var(--text2)">① 0일</span>`}
+      <span style="color:var(--text3)">+</span>
+      <span class="fm-chip" style="background:var(--blue-l);color:var(--blue)">② ${r.fRemain}일</span>
+      <span style="color:var(--text3)">=</span>
+      <strong style="color:var(--accent)">${r.finalPay}일</strong>
+      <span style="font-size:11px;color:var(--text3);margin-left:8px">입사일기준 ${hTotal}일 − 회계연도기준 ${fTotal}일 = ${r.diff||0}일 ${(r.diff||0)>0?'(추가)':'(추가없음)'}${(r.usedRemainder||0)>0?` / 회계연도 초과 사용 ${r.usedRemainder}일 → ①에서 추가 차감`:''} | 법령: ${eraLabel}${r.hasU?' | 무급휴직':''}</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div><h4 style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">입사일 기준 발생 내역</h4>
+        <table class="dtable"><thead><tr><th>구분</th><th>발생일</th><th class="num">실지급</th><th>비고</th></tr></thead>
+        <tbody>${hRows||'<tr><td colspan="5" style="color:var(--text3);text-align:center">데이터 없음</td></tr>'}</tbody>
+        <tfoot><tr><td colspan="3">합계</td><td class="num">${hTotal}</td><td></td></tr></tfoot></table>
+      </div>
+      <div><h4 style="font-size:12px;font-weight:600;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">회계연도 기준 발생 내역</h4>
+        <table class="dtable"><thead><tr><th>연도</th><th>발생일</th><th class="num">근속</th><th class="num">발생</th><th>비고</th></tr></thead>
+        <tbody>${fRows||'<tr><td colspan="5" style="color:var(--text3);text-align:center">데이터 없음</td></tr>'}</tbody>
+        <tfoot><tr><td colspan="3">합계</td><td class="num">${fTotal}</td><td></td></tr></tfoot></table>
+      </div>
+    </div>`;
+  document.getElementById('histModalOverlay').classList.add('open');
+}
+function closeHistModal(e){if(e.target===document.getElementById('histModalOverlay'))document.getElementById('histModalOverlay').classList.remove('open');}
+
+function openExcelModal(){
+  const n = document.querySelectorAll('.row-chk:checked').length;
+  document.getElementById('excelSelectedCount').textContent = n;
+  // 연도 선택 옵션 채우기
+  const yearSel = document.getElementById('excelYear');
+  if (yearSel.options.length === 0){
+    const h = window._historyCache || [];
+    const years = [...new Set(h.map(r=>{
+      const m=(r.retireDate||'').match(/(\d{4})/);
+      return m?m[1]:null;
+    }).filter(Boolean))].sort().reverse();
+    years.forEach(y=>{
+      const opt=document.createElement('option');
+      opt.value=y; opt.textContent=y+'년';
+      yearSel.appendChild(opt);
+    });
+  }
+  document.getElementById('excelModalOverlay').style.display = 'flex';
+}
+function closeExcelModal(){
+  document.getElementById('excelModalOverlay').style.display = 'none';
+}
+function onExcelTargetChange(){
+  const val = document.querySelector('input[name="excelTarget"]:checked').value;
+  document.getElementById('excelMonthPicker').style.display = (val === 'month') ? 'flex' : 'none';
+}
+function toggleAllExcelCols(checked){
+  document.querySelectorAll('.excel-col').forEach(cb => cb.checked = checked);
+}
+
+const EXCEL_COL_DEFS = {
+  name:['이름', r=>r.name], empId:['사번', r=>r.empId],
+  dept:['소속', r=>r.dept], team:['팀', r=>r.team],
+  joinDate:['입사일', r=>r.joinDate], retireDate:['퇴사일', r=>r.retireDate],
+  era:['적용법령', r=>eraLabel(r.era)],
+  hTotal:['입사일기준누계', r=>r.hTotal], fTotal:['회계연도기준누계', r=>r.fTotal],
+  diffAdj:['누계차이(①)', r=>r.diffAdj||0], fYear:['퇴직연도발생', r=>r.fYear||0],
+  usedLeave:['퇴직연도사용', r=>r.usedLeave||0], fRemain:['퇴직연도잔여(②)', r=>r.fRemain],
+  finalPay:['최종미사용연차', r=>r.finalPay], compLeave:['보상휴가지급일수', r=>r.compLeave||0],
+  totalPay:['최종 지급(보상휴가+미사용연차)', r=>round2((r.finalPay||0)+(r.compLeave||0))],
+  special:['비고', r=>r.special],
+  batchId:['배치ID', r=>r.batchId]
+};
+
+async function generateExcel(){
+  const h = window._historyCache.length ? window._historyCache : await loadHistory();
+  if(!h.length){ alert('저장된 내역이 없습니다.'); return; }
+
+  const target = document.querySelector('input[name="excelTarget"]:checked').value;
+  let rows;
+  if(target === 'selected'){
+    const idxs = [...document.querySelectorAll('.row-chk:checked')].map(c=>parseInt(c.dataset.idx));
+    rows = idxs.map(i=>h[i]).filter(Boolean);
+    if(!rows.length){ alert('선택된 사람이 없습니다.'); return; }
+  } else if(target === 'month'){
+    const yy = document.getElementById('excelYear').value;
+    const mm = document.getElementById('excelMonth').value;
+    rows = h.filter(r=>{
+      const d = normDateStr(r.retireDate);
+      return d.slice(0,4)===yy && d.slice(4,6)===mm;
+    });
+    if(!rows.length){ alert('해당 ' + yy + '년 ' + mm + '월에 퇴사한 대상자가 없습니다.'); return; }
+  } else {
+    rows = h;
+  }
+
+  const selectedCols = [...document.querySelectorAll('.excel-col:checked')].map(cb=>cb.value);
+  if(!selectedCols.length){ alert('내보낼 항목을 1개 이상 선택해주세요.'); return; }
+  const includeDetail = document.getElementById('excelIncludeDetail').checked;
+
+  try{
+    const wb=XLSX.utils.book_new();
+    const summary = rows.map(r=>{
+      const obj = {};
+      selectedCols.forEach(key=>{
+        const def = EXCEL_COL_DEFS[key];
+        if(def) obj[def[0]] = def[1](r);
+      });
+      return obj;
+    });
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(summary), '정산요약');
+
+    if(includeDetail){
+      const usedSheetNames = {};
+      rows.forEach(r=>{
+        // 시트명 생성 (엑셀 제약: 31자 이하, \ / ? * [ ] : 금지, 중복 시 번호 부여)
+        let baseName = (r.name || '이름없음').replace(/[\\\/\?\*\[\]:]/g,'').slice(0,25) + (r.empId?('_'+String(r.empId).slice(0,4)):'');
+        if(!baseName) baseName = '대상자';
+        let sheetName = baseName.slice(0,31);
+        let dupCount = usedSheetNames[sheetName] || 0;
+        if(dupCount > 0){
+          sheetName = (baseName.slice(0,28) + '_' + (dupCount+1)).slice(0,31);
+        }
+        usedSheetNames[baseName] = dupCount + 1;
+
+        const hRows = r.hRows || [];
+        const fRows = r.fRows || [];
+
+        // 좌측: 입사일 기준 / 우측: 회계연도 기준 — 같은 행에 나란히 배치
+        const header = ['[입사일 기준]','구분','발생일','산정기간','산정근거','발생일수','실지급','비고',
+                         '','[회계연도 기준]','발생연도','발생일','산정대상기간','근속','발생일수','비고'];
+        const maxLen = Math.max(hRows.length, fRows.length);
+        const body = [];
+        for(let i=0;i<maxLen;i++){
+          const h = hRows[i];
+          const f = fRows[i];
+          body.push([
+            '', h?h.period:'', h?(h.earnDate||''):'', h?(h.range||''):'', h?(h.basis||''):'',
+            h?h.days:'', h?(h._net!==undefined?h._net:h.days):'', h?(h.note||''):'',
+            '', '', f?(f.year+'년'):'', f?(f.earnDate||''):'', f?(f.prevPeriod||''):'',
+            f?(f.ten+'년차'):'', f?f.days:'', f?(f.note||''):''
+          ]);
+        }
+        const infoRow = [`${r.name||''} (${r.empId||'사번없음'}) — 입사:${r.joinDate||''} 퇴사:${r.retireDate||''} — 최종미사용연차:${r.finalPay}일${r.compLeave>0?', 보상휴가:'+r.compLeave+'일':''}`];
+        const sheetData = [infoRow, [], header, ...body];
+        const ws = XLSX.utils.aoa_to_sheet(sheetData);
+        ws['!cols'] = [{wch:3},{wch:14},{wch:11},{wch:20},{wch:16},{wch:9},{wch:8},{wch:26},
+                       {wch:3},{wch:14},{wch:10},{wch:11},{wch:20},{wch:9},{wch:9},{wch:26}];
+        XLSX.utils.book_append_sheet(wb, ws, sheetName);
+      });
+    }
+
+    XLSX.writeFile(wb,'연차정산_누적내역.xlsx');
+    closeExcelModal();
+  }catch(e){alert('엑셀 내보내기 오류: '+e.message);}
+}
+
+// ═══ PDF 내보내기 (브라우저 인쇄 방식 — 한글 폰트 깨짐 없음) ═══
+function openPdfModal(){
+  const n = document.querySelectorAll('.row-chk:checked').length;
+  document.getElementById('pdfSelectedCount').textContent = n;
+  document.getElementById('pdfModalOverlay').style.display = 'flex';
+}
+function closePdfModal(){
+  document.getElementById('pdfModalOverlay').style.display = 'none';
+}
+
+function eraLabel(era){ return {'pre2003':'구법','mid':'통합기','post2018':'현행'}[era] || era || ''; }
+
+async function generatePdf(){
+  const target = document.querySelector('input[name="pdfTarget"]:checked').value;
+  const format = document.querySelector('input[name="pdfFormat"]:checked').value;
+  const h = window._historyCache.length ? window._historyCache : await loadHistory();
+
+  let rows;
+  if(target === 'selected'){
+    const idxs = [...document.querySelectorAll('.row-chk:checked')].map(c=>parseInt(c.dataset.idx));
+    rows = idxs.map(i=>h[i]).filter(Boolean);
+    if(!rows.length){ alert('선택된 사람이 없습니다. 표에서 체크박스를 선택해주세요.'); return; }
+  } else {
+    rows = h;
+  }
+  if(!rows.length){ alert('내보낼 데이터가 없습니다.'); return; }
+
+  closePdfModal();
+
+  const win = window.open('', '_blank');
+  if(!win){ alert('팝업이 차단되었습니다. 브라우저의 팝업 차단을 해제해주세요.'); return; }
+
+  const todayStr = new Date().toLocaleDateString('ko-KR');
+  let bodyHtml = '';
+
+  if(format === 'summary'){
+    const totalDays = rows.reduce((s,r)=>s+r.finalPay,0);
+    bodyHtml = `
+      <h1>연차미사용수당 정산 명단</h1>
+      <p class="meta">출력일: ${todayStr} &nbsp;|&nbsp; 대상: ${rows.length}명 &nbsp;|&nbsp; 총 지급일수: ${totalDays}일</p>
+      <table>
+        <thead><tr><th>배치</th><th>이름</th><th>사번</th><th>소속/팀</th><th>입사일</th><th>퇴사일</th><th>입사일기준</th><th>회계연도기준</th><th>퇴직연도잔여</th><th>최종미사용연차</th><th>보상휴가</th><th>최종 지급<br>(보상휴가+미사용연차)</th><th>비고</th></tr></thead>
+        <tbody>
+          ${rows.map(r=>`<tr>
+            <td>${r.batchId}</td><td>${r.name}</td><td>${r.empId||''}</td>
+            <td>${[r.dept,r.team].filter(Boolean).join('/')}</td>
+            <td>${r.joinDate}</td><td>${r.retireDate}</td>
+            <td class="num">${r.hTotal}</td><td class="num">${r.fTotal}</td><td class="num">${r.fRemain}</td>
+            <td class="num">${r.finalPay}</td><td class="num">${r.compLeave>0?r.compLeave:'-'}</td>
+            <td class="num strong">${round2((r.finalPay||0)+(r.compLeave||0))}</td><td>${r.special||''}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>`;
+  } else {
+    // 대상자별 상세 내역
+    bodyHtml = rows.map((r,idx)=>{
+      const hRows = r.hRows||[];
+      const fRows = r.fRows||[];
+      const hTr = hRows.map(row=>{
+        const actual = row._net!==undefined?row._net:row.days;
+        return `<tr><td>${row.period}</td><td>${row.earnDate||'—'}</td><td class="num">${actual}일</td><td class="note">${row.note||''}</td></tr>`;
+      }).join('');
+      const fTr = fRows.map(row=>`<tr><td>${row.year}년</td><td>${row.earnDate||''}</td><td>${row.ten}년차</td><td class="num">${row.days}일</td><td class="note">${row.note||''}</td></tr>`).join('');
+      return `
+        <div class="person-block ${idx>0?'page-break':''}">
+          <h2>${r.name} <span class="sub">(${r.empId||'사번없음'} / ${[r.dept,r.team].filter(Boolean).join('-')||'소속없음'})</span></h2>
+          <p class="meta">입사일: ${r.joinDate} &nbsp;|&nbsp; 퇴사일: ${r.retireDate} &nbsp;|&nbsp; 적용법령: ${eraLabel(r.era)} &nbsp;|&nbsp; 배치: ${r.batchId}</p>
+          <div class="result-box">최종 지급 일수: <strong>${r.finalPay}일</strong>${r.compLeave>0?` &nbsp;|&nbsp; 보상휴가 지급일수: <strong>${r.compLeave}일</strong>`:''}</div>
+          <h3>입사일 기준 발생 내역</h3>
+          <table><thead><tr><th>구분</th><th>발생일</th><th>실지급</th><th>비고</th></tr></thead><tbody>${hTr}</tbody></table>
+          <h3>회계연도 기준 발생 내역</h3>
+          <table><thead><tr><th>연도</th><th>발생일</th><th>근속</th><th>발생일수</th><th>비고</th></tr></thead><tbody>${fTr}</tbody></table>
+        </div>`;
+    }).join('');
+    bodyHtml = `<h1>연차미사용수당 정산 상세 내역</h1><p class="meta">출력일: ${todayStr} &nbsp;|&nbsp; 대상: ${rows.length}명</p>` + bodyHtml;
+  }
+
+  win.document.write(`
+    <!DOCTYPE html><html><head><meta charset="UTF-8"><title>연차정산_${format==='summary'?'요약':'상세'}</title>
+    <style>
+      @media print { .page-break { page-break-before: always; } }
+      body { font-family: -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; padding: 24px; color:#1a1a1a; }
+      h1 { font-size: 20px; margin-bottom: 4px; }
+      h2 { font-size: 16px; margin: 18px 0 4px; }
+      h3 { font-size: 13px; margin: 14px 0 6px; color:#444; }
+      .meta { font-size: 12px; color: #666; margin-bottom: 14px; }
+      .sub { font-size: 13px; font-weight: 400; color: #666; }
+      table { width: 100%; border-collapse: collapse; font-size: 11px; margin-bottom: 10px; }
+      th, td { border: 1px solid #ddd; padding: 6px 8px; text-align: left; }
+      th { background: #f5f5f5; font-weight: 600; }
+      .num { text-align: right; font-family: monospace; }
+      .strong { font-weight: 700; color: #2d6a4f; }
+      .note { font-size: 10px; color: #888; }
+      .result-box { background: #e8f5e9; padding: 8px 14px; border-radius: 6px; margin-bottom: 10px; font-size: 13px; }
+      .person-block { margin-bottom: 24px; }
+    </style>
+    </head><body>${bodyHtml}
+    <scr` + `ipt>window.onload = function(){ setTimeout(function(){ window.print(); }, 300); };</scr` + `ipt>
+    </body></html>
+  `);
+  win.document.close();
+}
+
+
+function downloadTemplate(){
+  var h=['이름','사번','소속','팀명','입사일','퇴사일','퇴직연도 연차 사용 일수','무급휴직 여부(O/X)','무급휴직 시작1','무급휴직 종료1','무급휴직 시작2','무급휴직 종료2','결근시작1','결근종료1','결근시작2','결근종료2','보상휴가 지급일수','비고'];
+  var s1=['홍길동','EMP001','인사팀','HRM파트','2018-03-26','2026-06-30','4','O','2024-02-01','2024-03-31','','','','','','','0',''];
+  var s2=['김영희','EMP002','개발팀','플랫폼파트','2020-11-18','2026-05-31','2','X','','','','','2021-02-01','2021-02-05','','','3','육아휴직 후 퇴직'];
+  var s3=['이철수','EMP003','영업팀','B2B파트','2015-07-01','2026-07-31','0','O','2025-03-06','2025-07-10','','','2023-05-01','2023-05-03','','','0',''];
+  var data=[h,s1,s2,s3];
+  var ws=XLSX.utils.aoa_to_sheet(data);
+  var wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'퇴사자명단');
+  var guide=[
+    ['컬럼명','필수','설명'],
+    ['이름','필수','직원 성명'],
+    ['사번','선택','직원 사번'],
+    ['소속','선택','사업부/부서명'],
+    ['팀명','선택','팀명'],
+    ['입사일','필수','YYYY-MM-DD 형식'],
+    ['퇴사일','필수','YYYY-MM-DD 형식 (마지막 근무일)'],
+    ['퇴직연도 연차 사용 일수','선택','당해연도 사용한 연차 일수 (없으면 0)'],
+    ['무급휴직 여부(O/X)','선택','무급휴직 있으면 O, 없으면 X'],
+    ['무급휴직 시작1 / 종료1','선택','YYYY-MM-DD, 무급휴직 기간 (최대 2개)'],
+    ['무급휴직 시작2 / 종료2','선택','없으면 공란'],
+    ['결근시작1 / 결근종료1','선택','YYYY-MM-DD, 실제 결근 기간 (최대 2개)'],
+    ['결근시작2 / 결근종료2','선택','없으면 공란'],
+    ['보상휴가 지급일수','선택','최종 지급해야 하는 보상휴가 일수 (계산에는 반영되지 않는 단순 기록용, 없으면 0)'],
+    ['비고','선택','특이사항']
+  ];
+  var ws2=XLSX.utils.aoa_to_sheet(guide);
+  XLSX.utils.book_append_sheet(wb,ws2,'작성안내');
+  try {
+    XLSX.writeFile(wb,'퇴사자명단_양식.xlsx');
+  } catch(e) {
+    alert('다운로드 오류: ' + e.message);
+  }
+}
+function showPage(n){
+  document.querySelectorAll('.page').forEach((p,i)=>p.classList.toggle('active',i===n));
+  document.querySelectorAll('.nav-tab').forEach((t,i)=>t.classList.toggle('active',i===n));
+  if(n===4)renderHistory();
+}
+
+
+// ═══ 재직자 연차 산정 ═══
+var yrUnpaidPeriods = [];
+
+function yrBasisChange() {
+  var basis = document.getElementById('yr_basis').value;
+  var wrap = document.getElementById('yr_earnDateWrap');
+  wrap.style.display = basis === 'hire' ? 'flex' : 'none';
+  yrUpdatePeriodLabel();
+}
+
+function yrJoinDateChange() {
+  yrUpdatePeriodLabel();
+  var jv = document.getElementById('yr_joinDate').value;
+  if (!jv) return;
+  var era = getLawEra(new Date(jv));
+  var label = {'pre2003':'구법 (2003년 이전)','mid':'통합기 (2003~2018.5.28)','post2018':'현행 (2018.5.29~)'}[era];
+  var color = {'pre2003':'var(--amber)','mid':'var(--blue)','post2018':'var(--accent)'}[era];
+  document.getElementById('yr_lawBadge').innerHTML =
+    '<span style="font-size:11px;font-weight:500;padding:3px 10px;border-radius:20px;background:var(--surface2);color:'+color+'">적용 법령: '+label+'</span>';
+  // 입사일 기준 발생일 자동계산
+  yrCalcEarnDate();
+}
+
+function yrCalcEarnDate() {
+  var jv = document.getElementById('yr_joinDate').value;
+  var yr = parseInt(document.getElementById('yr_year').value);
+  var basis = document.getElementById('yr_basis').value;
+  if (!jv || !yr || basis !== 'hire') return;
+  var jd = new Date(jv);
+  // 해당 연도에 도래하는 기념일 찾기
+  var tenureYears = yr - jd.getFullYear();
+  if (tenureYears <= 0) {
+    // 1년 미만 — 월차이므로 기념일 없음
+    document.getElementById('yr_earnDate').value = '1년 미만 — 월 1일씩 발생';
+    return;
+  }
+  var earnDate = new Date(jd);
+  earnDate.setFullYear(jd.getFullYear() + tenureYears);
+  if (earnDate.getFullYear() === yr) {
+    document.getElementById('yr_earnDate').value = fmtD(earnDate) + ' (' + tenureYears + '년차)';
+  } else {
+    document.getElementById('yr_earnDate').value = '해당 연도에 기념일 없음';
+  }
+}
+
+function yrUpdatePeriodLabel() {
+  var jv = document.getElementById('yr_joinDate').value;
+  var yr = parseInt(document.getElementById('yr_year').value);
+  var basis = document.getElementById('yr_basis').value;
+  if (!jv || !yr) return;
+  var jd = new Date(jv);
+  var tenureYears = yr - jd.getFullYear();
+  var label = '';
+  if (basis === 'fiscal') {
+    if (tenureYears <= 0) {
+      // 1년 미만: 입사일~전월까지 (월차)
+      label = '월차 산정 — 입사 후 매 1개월';
+    } else {
+      // 전년도 전체 기간
+      label = (yr-1) + '.01.01 ~ ' + (yr-1) + '.12.31';
+    }
+  } else {
+    // 입사일 기준
+    if (tenureYears <= 0) {
+      label = '1년 미만 — 월차 산정';
+    } else {
+      var pStart = new Date(jd); pStart.setFullYear(jd.getFullYear() + (tenureYears-1));
+      var earnDate = new Date(jd); earnDate.setFullYear(jd.getFullYear() + tenureYears);
+      var pEnd = addD(earnDate, -1);
+      label = fmtD(pStart) + ' ~ ' + fmtD(pEnd) + ' (' + tenureYears + '년차)';
+    }
+  }
+  document.getElementById('yr_periodLabel').textContent = label;
+}
+
+function yrAddUnpaid() {
+  var s = document.getElementById('yr_unpaidStart').value;
+  var e = document.getElementById('yr_unpaidEnd').value;
+  if (!s||!e) { alert('시작일과 종료일을 입력하세요.'); return; }
+  if (s>e) { alert('종료일이 시작일보다 빠릅니다.'); return; }
+  yrUnpaidPeriods.push({start:s, end:e});
+  renderYrUnpaid();
+}
+function yrRemoveUnpaid(i) { yrUnpaidPeriods.splice(i,1); renderYrUnpaid(); }
+function renderYrUnpaid() {
+  document.getElementById('yr_unpaidList').innerHTML = yrUnpaidPeriods.map(function(p,i) {
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:var(--surface2);border-radius:6px;font-size:12px;margin-bottom:4px">'+
+      '<span>'+p.start+' ~ '+p.end+'</span>'+
+      '<button onclick="yrRemoveUnpaid('+i+')" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px">×</button></div>';
+  }).join('');
+}
+
+function runYrCalc() {
+  var jv = document.getElementById('yr_joinDate').value;
+  var yr = parseInt(document.getElementById('yr_year').value);
+  var basis = document.getElementById('yr_basis').value;
+  if (!jv) { alert('입사일을 입력하세요.'); return; }
+  if (!yr)  { alert('산정 연도를 입력하세요.'); return; }
+
+  var jd = new Date(jv);
+  var era = getLawEra(jd);
+  var hasU = yrUnpaidPeriods.length > 0;
+  var absentDays = parseInt(document.getElementById('yr_absentDays').value) || 0;
+  var tenureYears = yr - jd.getFullYear();
+  var eraLabel = {'pre2003':'구법','mid':'통합기','post2018':'현행'}[era];
+
+  var days = 0, detail = '', metrics = '';
+
+  // ────────────────────────────────────────
+  // 공통 헬퍼: 3단계 판정 + 상세 HTML 생성
+  // ────────────────────────────────────────
+  function judgePre2003(yr, 소정, 무급, 결근, periodLabel, earnDate) {
+    var cutoffGasan = new Date(2005,6,1); // 2005.7.1
+    var isNewLaw = earnDate && earnDate.getTime() >= cutoffGasan.getTime();
+
+    if (isNewLaw) {
+      // 신법 전환(2005.7.1 이후 발생분): 80% 기준 annualBase(yr) 체계로 전환
+      var base = annualBase(yr);
+      var j = judge(base, 소정, 무급, 결근, periodLabel);
+      j.detailHtml = '<div style="font-size:11px;color:var(--text3);margin-bottom:6px">⚖️ 2005.7.1 신법 시행 이후 발생분 — 80% 출근율 기준 신법(' + base + '일) 체계로 전환되어 적용됩니다.</div>' + j.detailHtml;
+      return j;
+    }
+
+    // 구법(2005.6.30 이전 발생분): 개근10일/9할이상8일, 매1년 가산, 20일 한도
+    var 실질 = 소정 - 무급;
+    var 출근 = Math.max(0, 실질 - 결근);
+    var 율 = 소정 > 0 ? 출근 / 소정 : 1;
+    var 가산 = Math.max(0, yr - 1);
+    var result, baseDays;
+    if (율 >= 1.0) { baseDays = 10; }
+    else if (율 >= 0.9) { baseDays = 8; }
+    else { baseDays = 0; }
+    result = baseDays === 0 ? 0 : Math.min(baseDays + 가산, 20);
+
+    var detailHtml =
+      '<div style="background:var(--surface2);border-radius:var(--r);padding:12px 14px;font-size:12px;line-height:2.2">' +
+      '<div style="font-weight:600;color:var(--text);margin-bottom:6px">📋 구법(2005.6.30 이전 발생분) 연차 산정 (' + periodLabel + ')</div>' +
+      '<div style="display:grid;grid-template-columns:120px 1fr;gap:4px;margin-bottom:8px">' +
+      '<span style="color:var(--text3)">연간 소정근로일수</span><span><strong>' + 소정 + '일</strong></span>' +
+      '<span style="color:var(--text3)">무급휴직</span><span><strong>' + 무급 + '일</strong></span>' +
+      '<span style="color:var(--text3)">결근일수</span><span><strong>' + 결근 + '일</strong></span>' +
+      '<span style="color:var(--text3)">출근일수</span><span><strong>' + 출근 + '일</strong></span>' +
+      '</div>' +
+      '<div style="border-left:3px solid var(--accent);padding-left:10px">출근율 ' + (율*100).toFixed(1) + '% — ' +
+      (율>=1.0 ? '개근 → 10일' : 율>=0.9 ? '9할(90%) 이상 → 8일' : '9할 미만 → 연차 없음') +
+      (yr>1 && baseDays>0 ? ' + 근속가산 ' + 가산 + '일 (매1년 가산, 20일 한도)' : '') +
+      '</div>' +
+      '<div style="background:var(--accent-l);border-radius:6px;padding:8px 12px;margin-top:6px">' +
+      '<strong style="color:var(--accent)">최종: ' + result + '일</strong></div>' +
+      '</div>';
+
+    var metricsHtml =
+      '<div class="detail-metric"><div class="dm-label">연간 소정근로일수</div><div class="dm-val">' + 소정 + '일</div></div>' +
+      '<div class="detail-metric"><div class="dm-label">무급휴직</div><div class="dm-val">' + 무급 + '일</div></div>' +
+      '<div class="detail-metric"><div class="dm-label">결근일수</div><div class="dm-val">' + 결근 + '일</div></div>' +
+      '<div class="detail-metric"><div class="dm-label">출근일수</div><div class="dm-val">' + 출근 + '일</div></div>' +
+      '<div class="detail-metric"><div class="dm-label">출근율</div><div class="dm-val">' + (율*100).toFixed(1) + '%</div></div>' +
+      '<div class="detail-metric" style="background:var(--accent-l);grid-column:span 2"><div class="dm-label">발생 연차</div><div class="dm-val green">' + result + '일</div></div>';
+
+    return { days: result, detailHtml, metricsHtml };
+  }
+
+  function judge(base, 소정, 무급, 결근, periodLabel) {
+    var 실질 = 소정 - 무급;
+    var 출근 = Math.max(0, 실질 - 결근);
+    var 율1  = 소정  > 0 ? 출근 / 소정  : 1;
+    var 율2  = 실질  > 0 ? 출근 / 실질  : 1;
+    var result, resultNote;
+
+    var step1Pass = 율1 >= 0.8;
+    var step2Pass = 율2 >= 0.8;
+
+    if (step1Pass) {
+      result = base;
+      resultNote = '전액 부여 <strong>' + base + '일</strong>';
+    } else if (step2Pass) {
+      result = Math.ceil(base * 실질 / 소정);
+      resultNote = '비례 부여 = ' + base + '일 × (실질소정근로일수 ' + 실질 + '/연간소정근로일수 ' + 소정 + ') = <strong>' + result + '일</strong>';
+    } else {
+      result = '월개근×1일';
+      resultNote = '§60② 적용 — 개근한 달마다 1일 부여';
+    }
+
+    var detailHtml =
+      '<div style="background:var(--surface2);border-radius:var(--r);padding:12px 14px;font-size:12px;line-height:2.2">' +
+      '<div style="font-weight:600;color:var(--text);margin-bottom:6px">📋 출근율 산정 과정 (' + periodLabel + ')</div>' +
+
+      // 소정근로일 분해
+      '<div style="display:grid;grid-template-columns:120px 1fr;gap:4px;margin-bottom:8px">' +
+      '<span style="color:var(--text3)">연간소정근로일수</span><span><strong>' + 소정 + '일</strong> (월~금, 법정공휴일 제외)</span>' +
+      '<span style="color:var(--text3)">무급휴직</span><span><strong>' + 무급 + '일</strong></span>' +
+      '<span style="color:var(--text3)">결근일수</span><span><strong>' + 결근 + '일</strong></span>' +
+      '<span style="color:var(--text3)">실질소정근로일수</span><span><strong>' + 실질 + '일</strong> (연간소정근로일수 ' + 소정 + ' − 무급휴직 ' + 무급 + ')</span>' +
+      '<span style="color:var(--text3)">출근일수</span><span><strong>' + 출근 + '일</strong> (실질소정근로일수 ' + 실질 + ' − 결근 ' + 결근 + ')</span>' +
+      '</div>' +
+
+      // 1단계
+      '<div style="border-left:3px solid ' + (step1Pass ? 'var(--accent)' : 'var(--red)') + ';padding-left:10px;margin-bottom:6px">' +
+      '<div style="font-weight:600;color:' + (step1Pass ? 'var(--accent)' : 'var(--red)') + '">1단계 출근율 ' + (율1*100).toFixed(1) + '% ' + (step1Pass ? '(≥80%) ✅' : '(<80%) ❌') + '</div>' +
+      '<div style="color:var(--text2)">출근 ' + 출근 + '일 ÷ 연간소정근로일수 ' + 소정 + '일 = ' + (율1*100).toFixed(1) + '%</div>' +
+      (step1Pass ? '<div style="color:var(--accent)">→ <strong>전액 부여</strong> (' + base + '일)</div>' : '<div style="color:var(--red)">→ 2단계로 진행</div>') +
+      '</div>' +
+
+      // 2단계 (1단계 통과 못한 경우만)
+      (!step1Pass ?
+        '<div style="border-left:3px solid ' + (step2Pass ? 'var(--accent)' : 'var(--red)') + ';padding-left:10px;margin-bottom:6px">' +
+        '<div style="font-weight:600;color:' + (step2Pass ? 'var(--accent)' : 'var(--red)') + '">2단계 실질출근율 ' + (율2*100).toFixed(1) + '% ' + (step2Pass ? '(≥80%) ✅' : '(<80%) ❌') + '</div>' +
+        '<div style="color:var(--text2)">출근 ' + 출근 + '일 ÷ 실질소정근로일수 ' + 실질 + '일 = ' + (율2*100).toFixed(1) + '%</div>' +
+        (step2Pass ?
+          '<div style="color:var(--accent)">→ <strong>비례 부여</strong> = ' + base + '일 × (' + 실질 + '/' + 소정 + ') = <strong>' + Math.ceil(base*실질/소정) + '일</strong></div>' :
+          '<div style="color:var(--red)">→ §60② 적용: 개근한 달마다 1일</div>'
+        ) +
+        '</div>'
+      : '') +
+
+      // 최종 결과
+      '<div style="background:var(--accent-l);border-radius:6px;padding:8px 12px;margin-top:4px">' +
+      '<strong style="color:var(--accent)">최종: ' + resultNote + '</strong>' +
+      '</div>' +
+      '</div>';
+
+    var metricsHtml =
+      '<div class="detail-metric"><div class="dm-label">연간소정근로일수</div><div class="dm-val">' + 소정 + '일</div></div>' +
+      '<div class="detail-metric"><div class="dm-label">무급휴직</div><div class="dm-val">' + 무급 + '일</div></div>' +
+      '<div class="detail-metric"><div class="dm-label">실질소정근로일수</div><div class="dm-val">' + 실질 + '일</div></div>' +
+      '<div class="detail-metric"><div class="dm-label">결근일수</div><div class="dm-val">' + 결근 + '일</div></div>' +
+      '<div class="detail-metric"><div class="dm-label">출근일수</div><div class="dm-val">' + 출근 + '일</div></div>' +
+      '<div class="detail-metric"><div class="dm-label">1단계 출근율</div><div class="dm-val' + (step1Pass?' green':'" style="color:var(--red)"') + '">' + (율1*100).toFixed(1) + '%</div></div>' +
+      (!step1Pass ? '<div class="detail-metric"><div class="dm-label">2단계 실질출근율</div><div class="dm-val' + (step2Pass?' green':'" style="color:var(--red)"') + '">' + (율2*100).toFixed(1) + '%</div></div>' : '') +
+      '<div class="detail-metric" style="background:var(--accent-l);grid-column:span 2"><div class="dm-label">발생 연차</div><div class="dm-val green">' + (typeof result==='number'?result+'일':result) + '</div></div>';
+
+    return { days: result, detailHtml, metricsHtml };
+  }
+
+  // ────────────────────────────────────────
+  // 회계연도 기준
+  // ────────────────────────────────────────
+  if (basis === 'fiscal') {
+    if (tenureYears <= 0) {
+      // 1년 미만 → 월차
+      var mc = 0;
+      for (var m2 = 1; m2 <= 11; m2++) {
+        var ed2 = new Date(jd); ed2.setMonth(ed2.getMonth() + m2);
+        if (ed2.getFullYear() !== yr) break;
+        mc++;
+      }
+      days = mc;
+      detail = '<div style="background:var(--surface2);border-radius:var(--r);padding:12px 14px;font-size:12px;line-height:2">' +
+        yr + '년 입사 (1년 미만) → 매 1개월 개근 시 1일 발생<br>' +
+        '입사일: <strong>' + fmtD(jd) + '</strong><br>' +
+        yr + '년 내 발생 가능 개월수: <strong>' + mc + '개월 → ' + mc + '일</strong></div>';
+      document.getElementById('yr_resultLabel').textContent = yr + '년 월차 발생 (1년 미만)';
+      metrics = '';
+
+    } else {
+      var prevStart = new Date(yr-1, 0, 1);
+      var prevEnd   = new Date(yr-1, 11, 31);
+      var isFirstYear = (tenureYears === 1);
+      var entMid = (jd.getMonth() > 0 || jd.getDate() > 1);
+      var base = era === 'pre2003' ? 12 : annualBase(tenureYears);
+
+      if (era === 'pre2003' && isFirstYear && entMid) {
+        days = 0;
+        detail = '<div style="background:var(--surface2);border-radius:var(--r);padding:12px 14px;font-size:12px;line-height:2">구법(2005.6.30 이전 입사): 입사 첫 해는 연차 없음 — 월차(1개월 개근시 1일)만 발생합니다.</div>';
+        metrics = '';
+        document.getElementById('yr_resultLabel').textContent = yr + '.01.01 발생 (구법, 입사 첫 해)';
+      } else if (isFirstYear && entMid) {
+        // 입사 첫 해 비례
+        // 기본: 역일 기준 / 무급휴직 있으면: 소정근로일 기준 (출근율 판단)
+        // mid era: 1년 미만 월차 차감 (§60③) / post2018: 미차감
+        var rawDaysF;
+        var noteBase;
+        if (hasU) {
+          // 무급휴직 있음 → 소정근로일 기준
+          var 전년소정 = workdaysInRange(prevStart, prevEnd);
+          var 입사후소정 = workdaysInRange(jd, prevEnd);
+          var 무급f = unpaidWD(jd, prevEnd, yrUnpaidPeriods);
+          var 실질f = 입사후소정 - 무급f;
+          var 결근f = absentDays;
+          var 출근f = Math.max(0, 실질f - 결근f);
+          var 율1f = 입사후소정 > 0 ? 출근f / 입사후소정 : 1;
+          var 율2f = 실질f > 0 ? 출근f / 실질f : 1;
+          if (율1f >= 0.8) {
+            rawDaysF = Math.ceil(base * 입사후소정 / 전년소정);
+            noteBase = '첫해비례(소정) ' + 입사후소정 + '/' + 전년소정 + '일, 출근율 ' + (율1f*100).toFixed(1) + '%';
+          } else if (율2f >= 0.8) {
+            rawDaysF = Math.ceil(base * 실질f / 전년소정);
+            noteBase = '첫해비례(소정·실질) ' + 실질f + '/' + 전년소정 + '일, 실질출근율 ' + (율2f*100).toFixed(1) + '%';
+          } else {
+            rawDaysF = 0;
+            noteBase = '첫해비례(소정) 출근율 미달 → 0일';
+          }
+        } else {
+          // 무급휴직 없음 → 역일 기준
+          var 전년역일 = calDays(prevStart, prevEnd);
+          var 입사후역일 = calDays(jd, prevEnd);
+          rawDaysF = Math.ceil(base * 입사후역일 / 전년역일);
+          noteBase = '첫해비례(역일) ' + 입사후역일 + '/' + 전년역일 + '일';
+        }
+
+        // mid era: 1년 미만 월차 차감
+        var mc1stYr = 0;
+        if (era === 'mid') {
+          for (var mm1 = 1; mm1 <= 11; mm1++) {
+            var ed1 = new Date(jd); ed1.setMonth(ed1.getMonth() + mm1);
+            if (ed1 > prevEnd || ed1 > new Date()) break;
+            mc1stYr++;
+          }
+          days = Math.max(0, rawDaysF - mc1stYr);
+        } else {
+          days = rawDaysF;
+        }
+
+        var deductNote = (era === 'mid' && mc1stYr > 0)
+          ? '<br><span style="color:var(--accent)">1년미만 월차 ' + mc1stYr + '일 차감 → <strong>' + days + '일</strong></span>'
+          : '';
+        detail = '<div style="background:var(--surface2);border-radius:var(--r);padding:12px 14px;font-size:12px;line-height:2">' +
+          noteBase + '<br>' +
+          '<div style="border-left:3px solid var(--accent);padding-left:10px">' +
+          '15일 × 비례 = <strong>' + rawDaysF + '일</strong>' + deductNote + '</div></div>';
+        metrics = '';
+        document.getElementById('yr_resultLabel').textContent = yr + '.01.01 발생 (입사 첫 해 비례)';
+        metrics = '';
+
+      } else {
+        // 전년도 전체 기간 출근율 산정
+        var 소정f = workdaysInRange(prevStart, prevEnd);
+        var 무급f2 = hasU ? unpaidWD(prevStart, prevEnd, yrUnpaidPeriods) : 0;
+        var judged = (era === 'pre2003')
+          ? judgePre2003(tenureYears, 소정f, 무급f2, absentDays, (yr-1) + '.01.01 ~ ' + (yr-1) + '.12.31', new Date(yr,0,1))
+          : judge(base, 소정f, 무급f2, absentDays, (yr-1) + '.01.01 ~ ' + (yr-1) + '.12.31');
+        days = judged.days;
+        detail = judged.detailHtml;
+        metrics = judged.metricsHtml;
+        document.getElementById('yr_resultLabel').textContent = yr + '.01.01 발생 (' + tenureYears + '년차, ' + eraLabel + ')';
+      }
+    }
+
+  // ────────────────────────────────────────
+  // 입사일 기준
+  // ────────────────────────────────────────
+  } else {
+    if (tenureYears <= 0) {
+      var mc2 = 0;
+      for (var m3 = 1; m3 <= 11; m3++) {
+        var ed3 = new Date(jd); ed3.setMonth(ed3.getMonth() + m3);
+        if (ed3.getFullYear() !== yr) break;
+        mc2++;
+      }
+      days = mc2;
+      detail = '<div style="background:var(--surface2);border-radius:var(--r);padding:12px 14px;font-size:12px;line-height:2">' +
+        yr + '년 입사 (1년 미만) → 월차<br>발생 개월: <strong>' + mc2 + '월 → ' + mc2 + '일</strong></div>';
+      document.getElementById('yr_resultLabel').textContent = yr + '년 월차 (1년 미만)';
+      metrics = '';
+    } else {
+      var earnDate2 = new Date(jd); earnDate2.setFullYear(jd.getFullYear() + tenureYears);
+      if (earnDate2.getFullYear() !== yr) {
+        document.getElementById('yr_result').style.display = 'block';
+        document.getElementById('yr_resultDays').textContent = '0';
+        document.getElementById('yr_resultLabel').textContent = yr + '년에 기념일 없음';
+        document.getElementById('yr_resultDetail').innerHTML =
+          yr + '년에 도래하는 입사기념일이 없습니다. (' + tenureYears + '년차 기념일: ' + fmtD(earnDate2) + ')';
+        document.getElementById('yr_metrics').innerHTML = '';
+        return;
+      }
+      var pStart2 = new Date(jd); pStart2.setFullYear(jd.getFullYear() + (tenureYears-1));
+      var pEnd2   = addD(earnDate2, -1);
+      var 소정h   = workdaysInRange(pStart2, pEnd2);
+      var 무급h   = hasU ? unpaidWD(pStart2, pEnd2, yrUnpaidPeriods) : 0;
+      var base3   = era === 'pre2003' ? 12 : annualBase(tenureYears);
+      var judgedH = (era === 'pre2003')
+        ? judgePre2003(tenureYears, 소정h, 무급h, absentDays, fmtD(pStart2) + ' ~ ' + fmtD(pEnd2), earnDate2)
+        : judge(base3, 소정h, 무급h, absentDays, fmtD(pStart2) + ' ~ ' + fmtD(pEnd2));
+      days    = judgedH.days;
+      detail  = judgedH.detailHtml;
+      metrics = judgedH.metricsHtml;
+      document.getElementById('yr_resultLabel').textContent = fmtD(earnDate2) + ' 발생 (' + tenureYears + '년차, ' + eraLabel + ')';
+    }
+  }
+
+  // ── 결과 표시 ──
+  document.getElementById('yr_resultDays').textContent = typeof days === 'number' ? days : days;
+  document.getElementById('yr_result').style.display = 'block';
+  document.getElementById('yr_resultDetail').innerHTML = detail;
+  document.getElementById('yr_metrics').innerHTML = metrics;
+  document.getElementById('yr_result').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+// ═══ 퇴직자 정산(개인) — 무급휴직 관리 ═══
+var calcUnpaidPeriods = [];
+
+function calcAddUnpaid() {
+  var s = document.getElementById('calc_unpaidStart').value;
+  var e = document.getElementById('calc_unpaidEnd').value;
+  if (!s || !e) { alert('시작일과 종료일을 입력하세요.'); return; }
+  if (s > e) { alert('종료일이 시작일보다 빠릅니다.'); return; }
+  calcUnpaidPeriods.push({start: s, end: e});
+  renderCalcUnpaid();
+}
+function calcRemoveUnpaid(i) {
+  calcUnpaidPeriods.splice(i, 1);
+  renderCalcUnpaid();
+}
+function renderCalcUnpaid() {
+  var el = document.getElementById('calc_unpaidList');
+  if (!el) return;
+  el.innerHTML = calcUnpaidPeriods.map(function(p, i) {
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:var(--surface2);border-radius:6px;font-size:12px;margin-bottom:4px">' +
+      '<span>' + p.start + ' ~ ' + p.end + '</span>' +
+      '<button onclick="calcRemoveUnpaid(' + i + ')" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;line-height:1">×</button></div>';
+  }).join('');
+}
+
+// 토글 슬라이더 시각 효과
+function calcToggleUnpaid(el) {
+  var block = document.getElementById('calc_unpaidBlock');
+  var slider = document.getElementById('calc_toggleSlider');
+  var dot = document.getElementById('calc_toggleDot');
+  if (!block) return;
+  block.style.display = el.checked ? 'block' : 'none';
+  if (slider) slider.style.background = el.checked ? 'var(--accent)' : 'var(--border2)';
+  if (dot) dot.style.transform = el.checked ? 'translateX(16px)' : 'translateX(0)';
+}
+
+
+// ═══ 퇴직자 정산(개인) — 결근 기간 관리 ═══
+var calcAbsentPeriods = []; // [{start:'YYYY-MM-DD', end:'YYYY-MM-DD'}]
+
+function calcToggleAbsent(el) {
+  var block = document.getElementById('calc_absentBlock');
+  var slider = document.getElementById('calc_absentSlider');
+  var dot = document.getElementById('calc_absentDot');
+  if (!block) return;
+  block.style.display = el.checked ? 'block' : 'none';
+  if (slider) slider.style.background = el.checked ? 'var(--accent)' : 'var(--border2)';
+  if (dot) dot.style.transform = el.checked ? 'translateX(16px)' : 'translateX(0)';
+  if (!el.checked) { calcAbsentPeriods = []; renderCalcAbsent(); }
+}
+
+function calcAddAbsent() {
+  var s = document.getElementById('calc_absentStart').value;
+  var e = document.getElementById('calc_absentEnd').value;
+  if (!s || !e) { alert('시작일과 종료일을 입력하세요.'); return; }
+  if (s > e) { alert('종료일이 시작일보다 빠릅니다.'); return; }
+  calcAbsentPeriods.push({start: s, end: e});
+  document.getElementById('calc_absentStart').value = '';
+  document.getElementById('calc_absentEnd').value = '';
+  renderCalcAbsent();
+}
+function calcRemoveAbsent(i) {
+  calcAbsentPeriods.splice(i, 1);
+  renderCalcAbsent();
+}
+function renderCalcAbsent() {
+  var el = document.getElementById('calc_absentList');
+  if (!el) return;
+  if (!calcAbsentPeriods.length) { el.innerHTML = ''; return; }
+  el.innerHTML = calcAbsentPeriods.map(function(p, i) {
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 10px;background:var(--surface2);border-radius:6px;font-size:12px;margin-bottom:4px">' +
+      '<span>' + p.start + ' ~ ' + p.end + '</span>' +
+      '<button onclick="calcRemoveAbsent(' + i + ')" style="background:none;border:none;cursor:pointer;color:var(--text3);font-size:16px;line-height:1">×</button></div>';
+  }).join('');
+}
+
+// 산정기간과 결근기간이 겹치는 소정근로일수 반환
+function getAbsentWDForPeriod(ps, pe) {
+  if (!calcAbsentPeriods.length) return 0;
+  return unpaidWD(ps, pe, calcAbsentPeriods); // unpaidWD 재활용 (소정근로일 겹침 계산)
+}
+
+function toggleCalcDetail() {
+  var block = document.getElementById('calc_detailBlock');
+  var icon = document.getElementById('calc_detailToggleIcon');
+  if (!block) return;
+  var open = block.style.display === 'none';
+  block.style.display = open ? 'block' : 'none';
+  icon.textContent = open ? '▲ 접기' : '▼ 펼치기';
+}
+
+function runCalc() {
+  var jv = document.getElementById('calc_joinDate').value;
+  var rv = document.getElementById('calc_retireDate').value;
+  if (!jv||!rv) { alert('입사일과 퇴직일을 입력하세요.'); return; }
+  var joinDate = new Date(jv), retireDate = new Date(rv);
+  if (retireDate <= joinDate) { alert('퇴직일은 입사일 이후여야 합니다.'); return; }
+  var usedLeave = parseFloat(document.getElementById('calc_usedLeave').value)||0;
+  var compLeave = parseFloat(document.getElementById('calc_compLeave').value)||0;
+  var hasU = document.getElementById('calc_unpaidToggle').checked;
+  var periods = hasU ? calcUnpaidPeriods : [];
+  var hasAbsent = document.getElementById('calc_absentToggle').checked;
+
+  // 결근일수를 hireBasis/fiscalBasis에 전달하기 위해 calcPerson 확장
+  var pName = document.getElementById('calc_name').value.trim();
+  var pEmpId = document.getElementById('calc_empId').value.trim();
+  var pDept = document.getElementById('calc_dept').value.trim();
+  var pTeam = document.getElementById('calc_team').value.trim();
+  var p = { name:pName, empId:pEmpId, dept:pDept, team:pTeam, special:'', joinDate:joinDate, retireDate:retireDate, usedLeave:usedLeave, unpaidPeriods:periods, absentPeriods: hasAbsent ? calcAbsentPeriods : [] };
+  var res = calcPerson(p);
+  res.compLeave = compLeave; // 보상휴가 지급일수 (계산에는 영향 없음, 기록용)
+
+  // 결과 표시
+  document.getElementById('calc_finalPay').textContent = round2(res.finalPay);
+  document.getElementById('calc_resultLabel').textContent = res.name ? (res.name + ' — 미사용연차수당 지급 대상') : '미사용연차수당 지급 대상';
+  document.getElementById('calc_result').style.display = 'block';
+
+  var compBox = document.getElementById('calc_compLeaveBox');
+  if (compLeave > 0) {
+    compBox.style.display = 'flex';
+    document.getElementById('calc_compLeaveVal').textContent = round2(compLeave);
+  } else {
+    compBox.style.display = 'none';
+  }
+
+  var totalBox = document.getElementById('calc_totalBox');
+  if (compLeave > 0) {
+    totalBox.style.display = 'flex';
+    document.getElementById('calc_totalVal').textContent = round2(res.finalPay + compLeave);
+  } else {
+    totalBox.style.display = 'none';
+  }
+
+  // 공식
+  var formulaHtml =
+    (res.diff>0 ? '<span style="background:var(--accent-l);color:var(--accent);padding:3px 9px;border-radius:4px;font-weight:500;font-family:var(--mono)">① +'+res.diffAdj+'일</span>' :
+                  '<span style="background:var(--surface2);color:var(--text2);padding:3px 9px;border-radius:4px;font-weight:500;font-family:var(--mono)">① 0일</span>') +
+    '<span style="color:var(--text3);font-size:16px">+</span>' +
+    '<span style="background:var(--blue-l);color:var(--blue);padding:3px 9px;border-radius:4px;font-weight:500;font-family:var(--mono)">② '+res.fRemain+'일</span>' +
+    '<span style="color:var(--text3);font-size:16px">=</span>' +
+    '<strong style="color:var(--accent);font-size:15px">'+res.finalPay+'일</strong>';
+  document.getElementById('calc_formula').innerHTML = formulaHtml;
+  document.getElementById('calc_formulaNote').innerHTML =
+    '① 전체 누계: 입사일 기준 <strong>'+res.hTotal+'일</strong> − 회계연도 기준 <strong>'+res.fTotal+'일</strong> = '+res.diff+'일' +
+    (res.diff>0 ? ' → <strong>'+res.diffAdj+'일 추가</strong>' : ' → 추가 없음') +
+    (res.usedRemainder>0 ? ' (회계연도 초과 사용 '+res.usedRemainder+'일 → ①에서 차감)' : '') + '<br>' +
+    '② 퇴직연도 발생 <strong>'+res.fYear+'일</strong> − 사용 <strong>'+res.usedLeave+'일</strong> = 잔여 <strong>'+res.fRemain+'일</strong>';
+
+  // 수치 카드
+  document.getElementById('calc_metrics').innerHTML =
+    '<div class="detail-metric"><div class="dm-label">입사일 기준 누계</div><div class="dm-val">'+res.hTotal+'일</div></div>' +
+    '<div class="detail-metric"><div class="dm-label">회계연도 기준 누계</div><div class="dm-val">'+res.fTotal+'일</div></div>' +
+    '<div class="detail-metric"><div class="dm-label">퇴직연도 발생</div><div class="dm-val">'+res.fYear+'일</div></div>' +
+    '<div class="detail-metric"><div class="dm-label">퇴직연도 사용</div><div class="dm-val">'+res.usedLeave+'일</div></div>' +
+    '<div class="detail-metric"><div class="dm-label">퇴직연도 잔여 ②</div><div class="dm-val">'+res.fRemain+'일</div></div>' +
+    '<div class="detail-metric" style="background:var(--accent-l)"><div class="dm-label">최종 지급</div><div class="dm-val green">'+res.finalPay+'일</div></div>';
+
+  // 상세 테이블
+  var hTr = res.hRows.map(function(r) {
+    var actual = r._net !== undefined ? r._net : r.days;
+    var noteStr = r.note || '';
+    // mid 시대 1년차 차감 설명은 비고에 간단히 표시
+    if (r._net !== undefined && r._net !== r.days) {
+      noteStr = '발생 ' + r.days + '일 → 월차차감 후 ' + r._net + '일';
+    }
+    return '<tr><td>'+r.period+'</td><td style="font-size:10px">'+(r.earnDate||'—')+'</td><td class="num" style="color:var(--accent);font-weight:600">'+actual+'일</td><td style="font-size:10px;color:var(--text3)">'+noteStr+'</td></tr>';
+  }).join('');
+  document.getElementById('calc_hTable').innerHTML =
+    '<thead><tr><th>구분</th><th>발생일</th><th class="num">실지급</th><th>비고</th></tr></thead>' +
+    '<tbody>'+hTr+'</tbody>' +
+    '<tfoot><tr><td colspan="2">합계</td><td class="num">'+res.hTotal+'일</td><td></td></tr></tfoot>';
+
+  var fTr = res.fRows.map(function(r) {
+    return '<tr><td>'+r.year+'년</td><td style="font-size:10px">'+r.earnDate+'</td><td class="num">'+r.ten+'년차</td><td class="num" style="color:var(--accent);font-weight:600">'+r.days+'</td><td style="font-size:10px;color:var(--text3)">'+(r.note||'')+'</td></tr>';
+  }).join('');
+  document.getElementById('calc_fTable').innerHTML =
+    '<thead><tr><th>연도</th><th>발생일</th><th class="num">근속</th><th class="num">발생</th><th>비고</th></tr></thead>' +
+    '<tbody>'+fTr+'</tbody>' +
+    '<tfoot><tr><td colspan="3">합계</td><td class="num">'+res.fTotal+'</td><td></td></tr></tfoot>';
+
+  // 저장용 임시 보관
+  window._calcLastResult = res;
+  // 상세 블록 닫힌 상태로 리셋
+  var db = document.getElementById('calc_detailBlock');
+  var di = document.getElementById('calc_detailToggleIcon');
+  if(db){ db.style.display='none'; }
+  if(di){ di.textContent='▼ 펼치기'; }
+  document.getElementById('calc_result').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+async function saveCalcResult() {
+  var res = window._calcLastResult;
+  if (!res) { alert('먼저 계산을 실행하세요.'); return; }
+  // 인적정보 입력칸 값 사용 (이름은 필수)
+  var name = document.getElementById('calc_name').value.trim();
+  if (!name) { alert('이름을 입력해주세요.'); document.getElementById('calc_name').focus(); return; }
+  res.name = name;
+  res.empId = document.getElementById('calc_empId').value.trim();
+  res.dept = document.getElementById('calc_dept').value.trim();
+  res.team = document.getElementById('calc_team').value.trim();
+
+  var btn = document.getElementById('calc_saveBtn');
+  btn.disabled = true; btn.textContent = '⏳ 저장 중...';
+  try {
+    var h = await loadHistory();
+    var batchNums = h.map(function(r) { var m = String(r.batchId).match(/B(\d+)/); return m ? parseInt(m[1]) : 0; }).filter(function(n){ return n>0; });
+    var nextNum = batchNums.length > 0 ? Math.max.apply(null, batchNums) + 1 : 1;
+    var batchId = 'B' + String(nextNum).padStart(3, '0');
+    var today = new Date().toLocaleDateString('ko-KR');
+    await sbFetch('POST', 'leave_settlements', [{
+      batch_id: batchId, saved_date: today,
+      name: res.name, emp_id: res.empId||'',
+      dept: res.dept||'', team: res.team||'',
+      join_date: fmtD(res.joinDate), retire_date: fmtD(res.retireDate),
+      era: res.era, has_unpaid: res.hasU,
+      h_total: res.hTotal, f_total: res.fTotal,
+      diff_adj: res.diffAdj, f_year: res.fYear,
+      used_leave: Math.floor(res.usedLeave||0), f_remain: Math.floor(res.fRemain||0),
+      used_remainder: Math.floor(res.usedRemainder||0), final_pay: Math.floor(res.finalPay||0),
+      used_leave_float: res.usedLeave||0, f_remain_float: res.fRemain||0,
+      final_pay_float: res.finalPay||0,
+      special: res.special||'', diff: res.diff,
+      h_rows: res.hRows, f_rows: res.fRows,
+      comp_leave: res.compLeave||0
+    }]);
+    alert(name + ' 저장 완료! ☁️ 팀원과 공유됩니다.');
+  } catch(e) { alert('저장 오류: ' + e.message); }
+  finally { btn.disabled = false; btn.textContent = '💾 이 결과를 누적 내역에 저장'; }
+}
+
+
+function openPicker(id) {
+  var picker = document.getElementById(id + '_picker');
+  var text = document.getElementById(id);
+  if (!picker || !text) return;
+  // 현재 텍스트 값을 picker에 반영
+  var cur = parseDateInput(text.value);
+  if (cur) picker.value = cur;
+  // showPicker API 사용 (모던 브라우저), 폴백은 focus
+  try {
+    picker.style.display = 'block';
+    picker.focus();
+    if (picker.showPicker) picker.showPicker();
+  } catch(e) {
+    picker.click();
+  }
+  setTimeout(function(){ picker.style.display = 'none'; }, 100);
+}
+
+function syncFromPicker(id) {
+  var picker = document.getElementById(id + '_picker');
+  var text = document.getElementById(id);
+  if (!picker || !text) return;
+  text.value = picker.value; // YYYY-MM-DD 형식으로 자동 세팅
+  text.style.borderColor = 'var(--accent)';
+  // onchange 트리거 (재직자 입사일 등)
+  text.dispatchEvent(new Event('change'));
+}
+
+function parseDateInput(val) {
+  if (!val) return '';
+  // 끝의 불필요한 특수문자 제거 (예: 2026-7-8-)
+  var s = val.trim().replace(/[^\d\-\.\/ ]+$/, '').trim();
+  // 구분자 통일
+  s = s.replace(/[.\/ ]/g, '-');
+  // YYYYMMDD → YYYY-MM-DD
+  if (/^\d{8}$/.test(s)) {
+    s = s.slice(0,4) + '-' + s.slice(4,6) + '-' + s.slice(6,8);
+  }
+  // YYYY-M-D 또는 YYYY-MM-D 등 → 월/일 zero-padding
+  var m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (m) {
+    s = m[1] + '-' + m[2].padStart(2,'0') + '-' + m[3].padStart(2,'0');
+  }
+  // 유효한 날짜인지 확인
+  var d = new Date(s);
+  if (isNaN(d.getTime())) return '';
+  return s;
+}
+
+function smartDateInput(el) {
+  var raw = el.value.trim();
+  var parsed = parseDateInput(raw);
+  if (parsed && parsed !== raw) {
+    el.value = parsed;
+    el.style.borderColor = 'var(--accent)';
+    // onchange 핸들러 트리거
+    el.dispatchEvent(new Event('change'));
+  } else if (parsed === raw && parsed) {
+    el.style.borderColor = 'var(--accent)';
+  } else {
+    el.style.borderColor = '';
+  }
+}
+
+
+
+// ── 재직자 연차 산정 폼 초기화 ──
+function resetYrForm() {
+  if (!confirm('입력한 모든 정보를 초기화하시겠습니까?')) return;
+  document.getElementById('yr_year').value = '2026';
+  document.getElementById('yr_basis').value = 'fiscal';
+  document.getElementById('yr_joinDate').value = '';
+  document.getElementById('yr_earnDate').value = '';
+  document.getElementById('yr_earnDateWrap').style.display = 'none';
+  document.getElementById('yr_lawBadge').innerHTML = '';
+  document.getElementById('yr_periodLabel').textContent = '—';
+  document.getElementById('yr_unpaidStart').value = '';
+  document.getElementById('yr_unpaidEnd').value = '';
+  document.getElementById('yr_absentDays').value = '0';
+  yrUnpaidPeriods = [];
+  renderYrUnpaid();
+  document.getElementById('yr_result').style.display = 'none';
+}
+
+// ── 퇴직자 정산(개인) 폼 초기화 ──
+function resetCalcForm() {
+  if (!confirm('입력한 모든 정보를 초기화하시겠습니까?')) return;
+  document.getElementById('calc_name').value = '';
+  document.getElementById('calc_empId').value = '';
+  document.getElementById('calc_dept').value = '';
+  document.getElementById('calc_team').value = '';
+  document.getElementById('calc_joinDate').value = '';
+  document.getElementById('calc_retireDate').value = '';
+  document.getElementById('calc_usedLeave').value = '0';
+  document.getElementById('calc_compLeave').value = '0';
+  document.getElementById('calc_lawBadge').innerHTML = '';
+  document.getElementById('calc_unpaidToggle').checked = false;
+  document.getElementById('calc_unpaidBlock').style.display = 'none';
+  document.getElementById('calc_toggleSlider').style.background = 'var(--border2)';
+  document.getElementById('calc_toggleDot').style.transform = 'translateX(0)';
+  document.getElementById('calc_unpaidStart').value = '';
+  document.getElementById('calc_unpaidEnd').value = '';
+  calcUnpaidPeriods = [];
+  renderCalcUnpaid();
+  document.getElementById('calc_absentToggle').checked = false;
+  document.getElementById('calc_absentBlock').style.display = 'none';
+  document.getElementById('calc_absentSlider').style.background = 'var(--border2)';
+  document.getElementById('calc_absentDot').style.transform = 'translateX(0)';
+  document.getElementById('calc_absentStart').value = '';
+  document.getElementById('calc_absentEnd').value = '';
+  calcAbsentPeriods = [];
+  renderCalcAbsent();
+  document.getElementById('calc_result').style.display = 'none';
+}
+
+// ── 날짜 자동 포맷 (붙여넣기 시 YYYYMMDD → YYYY-MM-DD) ──
+function autoFormatDate(el) {
+  // type=date input은 브라우저가 직접 처리
+  // 단, 붙여넣기로 20190605 형식 입력 시 변환
+  var v = el.value;
+  if (/^\d{8}$/.test(v)) {
+    el.value = v.slice(0,4) + '-' + v.slice(4,6) + '-' + v.slice(6,8);
+  }
+  // 끝에 - 붙은 경우 제거 (2026-7-8- 등)
+  if (/\d-$/.test(v)) {
+    el.value = v.slice(0,-1);
+  }
+  // 연도가 4자리를 초과하여 입력된 경우 보정 (예: 202606-07-08 같은 비정상 값 방지)
+  var m = el.value.match(/^(\d+)-(\d{1,2})-(\d{1,2})$/);
+  if (m && m[1].length > 4) {
+    var fixedYear = m[1].slice(-4); // 마지막 4자리만 사용
+    el.value = fixedYear + '-' + m[2] + '-' + m[3];
+  }
+}
+
+// type=date input의 연도 입력 칸이 4자리를 넘지 않도록 keydown 단계에서 차단
+function limitYearInput(el) {
+  el.addEventListener('keydown', function(e) {
+    // 숫자 키 입력이고 현재 값이 비정상적으로 길 경우(연도 4자리 초과 입력 시도) 차단
+    if (/^[0-9]$/.test(e.key)) {
+      var val = el.value || '';
+      var parts = val.split('-');
+      // 날짜 입력 UI에서 첫 세그먼트(연도)가 이미 4자리이면 추가 숫자 입력을 막기 어려우므로
+      // input 이벤트 후 보정하는 방식과 함께 사용
+    }
+  });
+  el.addEventListener('input', function() {
+    var val = el.value || '';
+    var m2 = val.match(/^(\d+)(-\d{1,2}-\d{1,2})?$/);
+    if (m2 && m2[1].length > 4) {
+      var newVal = m2[1].slice(0,4) + (m2[2] || '');
+      if (newVal !== val) el.value = newVal;
+    }
+  });
+}
+
+// 붙여넣기 이벤트 처리
+function bindDateInputs() {
+  var ids = ['yr_joinDate','yr_unpaidStart','yr_unpaidEnd',
+             'calc_joinDate','calc_retireDate',
+             'calc_unpaidStart','calc_unpaidEnd',
+             'calc_absentStart','calc_absentEnd'];
+  ids.forEach(function(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('paste', function(e) {
+      e.preventDefault();
+      var text = (e.clipboardData || window.clipboardData).getData('text').trim();
+      // 구분자 제거하고 숫자만 추출
+      var digits = text.replace(/[^\d]/g,'');
+      if (digits.length === 8) {
+        el.value = digits.slice(0,4) + '-' + digits.slice(4,6) + '-' + digits.slice(6,8);
+        el.dispatchEvent(new Event('change'));
+      } else {
+        el.value = text;
+      }
+    });
+    // 키보드 직접 입력 시 연도 4자리 초과 방지
+    limitYearInput(el);
+  });
+}
+
+
+bindDateInputs();
+renderHistory();
+
+</script>
+
+<div class="modal-overlay" id="histModalOverlay" onclick="closeHistModal(event)">
+  <div class="modal" id="histModal">
+    <button class="modal-close" onclick="document.getElementById('histModalOverlay').classList.remove('open')">✕</button>
+    <div class="modal-title" id="histModalTitle"></div>
+    <div id="histModalBody"></div>
+  </div>
+</div>
+
+</body>
+</html>
