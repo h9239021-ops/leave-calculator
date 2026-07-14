@@ -360,7 +360,11 @@ nav{position:sticky;top:0;z-index:100;background:var(--surface);border-bottom:1p
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
         <div class="field-wrap">
           <label class="field-label">퇴직연도 연차 사용일수</label>
-          <input type="number" id="calc_usedLeave" min="0" value="0" class="calc-input">
+          <input type="number" id="calc_usedLeave" min="0" step="0.25" value="0" class="calc-input">
+        </div>
+        <div class="field-wrap">
+          <label class="field-label">보상휴가 지급일수 <span style="font-size:11px;color:var(--text3);font-weight:400">(미사용 보상휴가)</span></label>
+          <input type="number" id="calc_compLeave" min="0" step="0.25" value="0" class="calc-input">
         </div>
       </div>
     </div>
@@ -430,8 +434,18 @@ nav{position:sticky;top:0;z-index:100;background:var(--surface);border-bottom:1p
     <div id="calc_result" style="display:none">
       <!-- 최종 결과 카드 -->
       <div style="background:var(--accent);color:#fff;border-radius:var(--rl);padding:1rem 1.5rem;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">
-        <div style="font-size:13px;opacity:.8" id="calc_resultLabel">미사용수당 지급 대상</div>
+        <div style="font-size:13px;opacity:.8" id="calc_resultLabel">미사용연차수당 지급 대상</div>
         <div style="display:flex;align-items:baseline;gap:6px"><span style="font-size:22px;font-weight:600;font-family:var(--mono)" id="calc_finalPay">0</span><span style="font-size:13px;opacity:.8">일</span></div>
+      </div>
+
+      <div id="calc_compLeaveBox" style="display:none;background:var(--surface2);border-radius:var(--rl);padding:0.7rem 1.2rem;margin-bottom:10px;align-items:center;justify-content:space-between">
+        <div style="font-size:12px;color:var(--text2)">➕ 보상휴가 지급일수</div>
+        <div style="display:flex;align-items:baseline;gap:4px"><span style="font-size:16px;font-weight:600;font-family:var(--mono);color:var(--text)" id="calc_compLeaveVal">0</span><span style="font-size:12px;color:var(--text3)">일</span></div>
+      </div>
+
+      <div id="calc_totalBox" style="display:none;background:var(--accent-l);border-radius:var(--rl);padding:0.8rem 1.2rem;margin-bottom:10px;align-items:center;justify-content:space-between">
+        <div style="font-size:13px;color:var(--accent);font-weight:600">🧾 총 지급일수 (미사용연차수당 + 보상휴가)</div>
+        <div style="display:flex;align-items:baseline;gap:4px"><span style="font-size:20px;font-weight:700;font-family:var(--mono);color:var(--accent)" id="calc_totalVal">0</span><span style="font-size:13px;color:var(--accent)">일</span></div>
       </div>
 
       <!-- 정산 공식 -->
@@ -487,7 +501,7 @@ nav{position:sticky;top:0;z-index:100;background:var(--surface);border-bottom:1p
       필수: <code>이름</code> <code>입사일</code> <code>퇴사일</code><br>
       선택: <code>사번</code> <code>소속</code> <code>팀명</code> <code>퇴직연도 연차 사용 일수</code><br>
       무급휴직: <code>무급휴직 여부(O/X)</code> <code>무급휴직 시작1</code> <code>무급휴직 종료1</code> (최대 2기간)<br>
-      결근: <code>결근시작1</code> <code>결근종료1</code> (최대 2기간) <code>비고</code><br>
+      결근: <code>결근시작1</code> <code>결근종료1</code> (최대 2기간) &nbsp;|&nbsp; <code>보상휴가 지급일수</code> <code>비고</code><br>
       <span style="font-size:12px;color:var(--text3)">⬇ 양식 다운로드로 정확한 컬럼명 확인 권장</span>
     </div>
   </div>
@@ -559,7 +573,7 @@ nav{position:sticky;top:0;z-index:100;background:var(--surface);border-bottom:1p
   </div>
   <div class="history-table-wrap">
     <table class="htable">
-      <thead><tr><th class="chk"><input type="checkbox" id="checkAll" onchange="toggleAllCheck(this)"></th><th>배치</th><th>이름</th><th>사번</th><th>소속/팀</th><th>입사일</th><th>퇴사일</th><th class="num">입사일기준</th><th class="num">회계연도기준</th><th class="num">퇴직연도잔여</th><th class="num">최종지급</th><th>비고</th></tr></thead>
+      <thead><tr><th class="chk"><input type="checkbox" id="checkAll" onchange="toggleAllCheck(this)"></th><th>배치</th><th>이름</th><th>사번</th><th>소속/팀</th><th>입사일</th><th>퇴사일</th><th class="num">입사일기준</th><th class="num">회계연도기준</th><th class="num">퇴직연도잔여</th><th class="num">최종미사용연차</th><th class="num">보상휴가</th><th class="num">최종 지급<br>(보상휴가+미사용연차)</th><th>비고</th></tr></thead>
       <tbody id="historyBody"></tbody>
     </table>
     <div class="empty-state" id="historyEmpty"><div class="ei">📋</div><p>아직 저장된 정산 내역이 없습니다.<br>② 탭에서 파일을 업로드하고 저장하세요.</p></div>
@@ -627,7 +641,9 @@ nav{position:sticky;top:0;z-index:100;background:var(--surface);border-bottom:1p
         <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="fYear" checked> 퇴직연도발생</label>
         <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="usedLeave" checked> 퇴직연도사용</label>
         <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="fRemain" checked> 퇴직연도잔여</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="finalPay" checked> 최종지급일수</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="finalPay" checked> 최종미사용연차</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="compLeave" checked> 보상휴가지급일수</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="totalPay" checked> 최종 지급(보상휴가+미사용연차)</label>
         <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="special" checked> 비고</label>
         <label style="display:flex;align-items:center;gap:6px;font-size:13px;padding:3px 0;cursor:pointer"><input type="checkbox" class="excel-col" value="batchId" checked> 배치ID</label>
       </div>
@@ -638,7 +654,7 @@ nav{position:sticky;top:0;z-index:100;background:var(--surface);border-bottom:1p
     </div>
 
     <label style="display:flex;align-items:center;gap:8px;padding:6px 0;cursor:pointer;margin-bottom:10px">
-      <input type="checkbox" id="excelIncludeDetail" checked> 상세 발생내역 시트 포함 (입사일기준상세 / 회계연도기준상세)
+      <input type="checkbox" id="excelIncludeDetail" checked> 상세 발생내역 시트 포함 (대상자 1명당 시트 1개 생성, 입사일기준·회계연도기준 좌우 비교)
     </label>
 
     <div style="display:flex;gap:8px;margin-top:8px">
@@ -650,6 +666,7 @@ nav{position:sticky;top:0;z-index:100;background:var(--surface);border-bottom:1p
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
+
 
 // ═══ Supabase 연동 설정 ═══
 const SUPABASE_URL = 'https://wvolctqklbmmlzosexel.supabase.co';
@@ -681,6 +698,23 @@ function addD(d,n){const r=new Date(d);r.setDate(r.getDate()+n);return r;}
 function dStr(d){if(!d||isNaN(d.getTime()))return'';return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
 function fmtD(d){if(!d||isNaN(d.getTime()))return'';return`${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;}
 function isWorkday(d){const w=d.getDay();if(w===0||w===6)return false;return!getHolidays(d.getFullYear()).has(dStr(d));}
+function calDays(s,e){
+  // 역일(달력일수) 기준: 시작일 포함, 종료일 포함
+  const ms = new Date(e) - new Date(s);
+  return Math.round(ms/86400000) + 1;
+}
+function calDaysExclude(s,e,periods){
+  // 무급휴직 기간(역일)을 제외한 역일 수
+  if(!periods||!periods.length) return calDays(s,e);
+  let exclude=0;
+  periods.forEach(p=>{
+    const ps=new Date(p.start),pe2=new Date(p.end);
+    const os=ps>new Date(s)?ps:new Date(s);
+    const oe=pe2<new Date(e)?pe2:new Date(e);
+    if(os<=oe) exclude+=Math.round((oe-os)/86400000)+1;
+  });
+  return calDays(s,e)-exclude;
+}
 function workdaysInRange(s,e){let c=0,cur=new Date(s);const end=new Date(e);while(cur<=end){if(isWorkday(cur))c++;cur=addD(cur,1);}return c;}
 function unpaidWD(s,e,periods){let t=0;for(const p of periods){const ps=new Date(p.start),pe=new Date(p.end);const os=ps<s?new Date(s):new Date(ps),oe=pe>e?new Date(e):new Date(pe);if(os<=oe)t+=workdaysInRange(os,oe);}return t;}
 function calcAttWithAbsent(s,e,periods,hasU,absentDays){
@@ -703,6 +737,7 @@ function calcAtt(s,e,periods,hasU){
   const 율2단계=실질소정>0?출근/실질소정:1;
   return{소정,무급,실질소정,출근,율:율1단계,율2단계};
 }
+function round2(n){ return Math.round(n*100)/100; }
 function annualBase(yr){return yr===1?15:Math.min(15+Math.floor((yr-1)/2),25);}
 
 // ── 구법(~2005.6.30 입사) 연차 계산 (구 근로기준법 제59조, 1997.3.13 기준) ──
@@ -1027,11 +1062,50 @@ function fiscalBasis(jd,rd,periods,era,hasU,absentPeriods){
 
     const base=annualBase(ten-1);
     if(isFirst&&entMid){
-      // 입사 첫 해: 전년도 소정근로일 대비 입사일~12/31 비례
-      const 전년소정=workdaysInRange(ps,pe);const 입사후소정=workdaysInRange(jd,pe);
-      const 무급=hasU?unpaidWD(jd,pe,periods):0;const 출근=입사후소정-무급;const 율=입사후소정>0?출근/입사후소정:1;
-      if(hasU&&율<0.8){days=Math.ceil(15*출근/전년소정);note=`첫해비례+출근율 ${(율*100).toFixed(1)}%`;}
-      else{days=Math.ceil(15*입사후소정/전년소정);note=`첫해비례 (${입사후소정}/${전년소정}일)${hasU?` 출근율 ${(율*100).toFixed(1)}%`:''}`;}
+      // 입사 첫 해 비례
+      // 기본: 역일 기준 (입사후역일 ÷ 전년역일 × 15)
+      // 무급휴직 있을 때: 소정근로일 기준 (출근율 80% 판단 포함)
+      // mid era: 1년 미만 월차를 비례 연차에서 차감 (§60③)
+      // post2018: 미차감 (§60③ 삭제)
+      let rawDays;
+      if(hasU){
+        // 무급휴직 있음 → 소정근로일 기준
+        const 전년소정=workdaysInRange(ps,pe);
+        const 입사후소정=workdaysInRange(jd,pe);
+        const 무급=unpaidWD(jd,pe,periods);
+        const 출근=입사후소정-무급;
+        const 율=입사후소정>0?출근/입사후소정:1;
+        if(율<0.8){
+          rawDays=Math.ceil(15*출근/전년소정);
+          note=`첫해비례(소정) 출근율 ${(율*100).toFixed(1)}% (<80%) → ${출근}/${전년소정}일`;
+        }else{
+          rawDays=Math.ceil(15*입사후소정/전년소정);
+          note=`첫해비례(소정) ${입사후소정}/${전년소정}일`;
+        }
+      }else{
+        // 무급휴직 없음 → 역일 기준 (소수 상태로 월차 차감 후 올림)
+        const 전년역일=calDays(ps,pe);
+        const 입사후역일=calDays(jd,pe);
+        const rawFloat=15*입사후역일/전년역일;
+        note=`첫해비례(역일) ${입사후역일}/${전년역일}일`;
+        if(era==='mid'){
+          // 소수 상태에서 전년도 월차 차감 후 올림 (§60③)
+          let mc1st=0;
+          for(let m=1;m<=11;m++){
+            const ed2=new Date(jd);ed2.setMonth(ed2.getMonth()+m);
+            if(ed2.getTime()>pe.getTime()+86400000||ed2.getTime()>rms)break;
+            const ms2=new Date(jd);ms2.setMonth(ms2.getMonth()+(m-1));
+            const me2=addD(ed2,-1);
+            const absentWD2=(absentPeriods&&absentPeriods.length>0)?unpaidWD(ms2,me2,absentPeriods):0;
+            if(absentWD2===0)mc1st++;
+          }
+          rawDays=Math.max(0,Math.ceil(rawFloat-mc1st));
+          note+=` (소수${rawFloat.toFixed(2)} - 월차${mc1st}일 차감 → 올림 ${rawDays}일)`;
+        }else{
+          rawDays=Math.ceil(rawFloat);
+        }
+        days=rawDays;
+      }
     }else{
       const att=calcAtt(ps,pe,periods,hasU);const r=calcLeave(base,att,hasU);days=r.days;
       if(r.monthly){
@@ -1050,6 +1124,32 @@ function fiscalBasis(jd,rd,periods,era,hasU,absentPeriods){
         note=`출근율 ${(att.율*100).toFixed(1)}% (<80%) / 실질 ${(att.율2단계*100).toFixed(1)}% (≥80%) → 비례 ${days}일`;
       } else if(hasU){
         note=`출근율 ${(att.율*100).toFixed(1)}% (≥80%) → 전액 ${base}일`;
+      }
+    }
+    // mid era: 해당 연차 발생 연도(y)의 전년도(y-1)에 발생한 1년 미만 월차 차감
+    // (첫해 비례는 위에서 이미 차감했으므로 제외)
+    if(era==='mid'&&!(isFirst&&entMid)){
+      // 1년 미만 월차 발생 기간: 입사일 ~ 만1년 전날
+      const oneYear=new Date(jd);oneYear.setFullYear(oneYear.getFullYear()+1);
+      const mcStart=new Date(jd);
+      const mcEnd=new Date(oneYear.getTime()-1); // 만1년 전날
+      // 전년도(y-1)에 발생한 월차 수 계산
+      let mcInPrevYear=0;
+      for(let m=1;m<=11;m++){
+        const mcDate=new Date(jd);mcDate.setMonth(mcDate.getMonth()+m);
+        if(mcDate>=oneYear)break; // 만1년 이후는 월차 없음
+        const mcYear=mcDate.getFullYear();
+        if(mcYear===y-1){
+          // 해당 월 개근 여부
+          const mStart=new Date(jd);mStart.setMonth(mStart.getMonth()+(m-1));
+          const mEnd=addD(mcDate,-1);
+          const absentWD=(absentPeriods&&absentPeriods.length>0)?unpaidWD(mStart,mEnd,absentPeriods):0;
+          if(absentWD===0)mcInPrevYear++;
+        }
+      }
+      if(mcInPrevYear>0&&days>0){
+        days=Math.max(0,days-mcInPrevYear);
+        note+=(note?` `:'')+`(1년미만 월차 ${mcInPrevYear}일 차감 → ${days}일)`;
       }
     }
     rows.push({year:y,earnDate:fmtD(new Date(y,0,1)),prevPeriod:`${y-1}.01.01~${y-1}.12.31`,ten,days,note});
@@ -1142,8 +1242,8 @@ function calcPerson(p){
 
   return{name,empId,dept,team,special,joinDate:jd,retireDate:rd,era,
     hTotal:hTotalF,fTotal:fTotalF,diff:diffF,diffAdj:diffAdjF,
-    fYear:fYearF,usedLeave,fRemain:fRemainF,usedRemainder:usedRemainderF,
-    finalPay:finalPayF,hRows:hRowsF,fRows:fRowsF,hasU,periods};
+    fYear:fYearF,usedLeave:round2(usedLeave),fRemain:round2(fRemainF),usedRemainder:round2(usedRemainderF),
+    finalPay:round2(finalPayF),hRows:hRowsF,fRows:fRowsF,hasU,periods};
 }
 
 // ── 파일 파싱 (컬럼명 유연 대응) ──
@@ -1175,7 +1275,8 @@ function parseRow(row){
   const team=get(['팀명','팀','Team'])||'';                  // 팀명·팀 모두 허용
   const joinDate=parseDate(get(['입사일','입사일자','JoinDate']));
   const retireDate=parseDate(get(['퇴사일','퇴직일','퇴사일자','RetireDate']));
-  const usedLeave=parseInt(get(['퇴직연도연차사용일수','퇴직연도사용연차','연차사용일수','사용연차','UsedLeave']))||0;
+  const usedLeave=parseFloat(get(['퇴직연도연차사용일수','퇴직연도사용연차','연차사용일수','사용연차','UsedLeave']))||0;
+  const compLeave=parseFloat(get(['보상휴가지급일수','보상휴가','보상휴가일수','CompLeave']))||0;
   const special=get(['비고','특이사항','Note','Remark'])||'';
   const unpaidPeriods=[];
   // 형식A: 무급휴직여부(O/X) + 단일 시작/종료
@@ -1198,7 +1299,7 @@ function parseRow(row){
     const e=parseDate(get([`결근종료${i}`,`결근기간종료${i}`]));
     if(s&&e)absentPeriods.push({start:dStr(s),end:dStr(e)});
   }
-  return{name,empId,dept,team,joinDate,retireDate,usedLeave,unpaidPeriods,absentPeriods,special};
+  return{name,empId,dept,team,joinDate,retireDate,usedLeave,unpaidPeriods,absentPeriods,special,compLeave};
 }
 
 let currentResults=[];
@@ -1225,7 +1326,7 @@ function processData(data){
       return;
     }
     if(p.retireDate<=p.joinDate){errCount++;cards.innerHTML+=`<div class="err-card">⚠ ${p.name}: 퇴사일이 입사일보다 빠릅니다.</div>`;return;}
-    try{const res=calcPerson({...p,absentPeriods:p.absentPeriods||[]});currentResults.push(res);cards.innerHTML+=renderCard(res,currentResults.length-1);}
+    try{const res=calcPerson({...p,absentPeriods:p.absentPeriods||[]});res.compLeave=p.compLeave||0;currentResults.push(res);cards.innerHTML+=renderCard(res,currentResults.length-1);}
     catch(err){errCount++;cards.innerHTML+=`<div class="err-card">⚠ ${p.name} 계산 오류: ${err.message}</div>`;}
   });
   const total=currentResults.length;
@@ -1255,7 +1356,8 @@ function renderCard(res,idx){
     <div class="person-chips">
       <span class="p-chip ${eraColor}">${eraLabel}</span>
       ${res.hasU?'<span class="p-chip pc-amber">무급휴직</span>':''}
-      <span class="p-days">${res.finalPay}일</span>
+      ${res.compLeave>0?`<span class="p-chip pc-blue">보상휴가 ${round2(res.compLeave)}일</span>`:''}
+      <span class="p-days">${round2(res.finalPay)}일</span>
     </div>
     <span class="toggle-icon" id="ti${idx}">▼</span>
   </div>
@@ -1298,10 +1400,13 @@ async function loadHistory(){
       era:r.era||'', hasU:r.has_unpaid||false,
       hTotal:r.h_total||0, fTotal:r.f_total||0,
       diffAdj:r.diff_adj||0, fYear:r.f_year||0,
-      usedLeave:r.used_leave||0, fRemain:r.f_remain||0,
-      usedRemainder:r.used_remainder||0, finalPay:r.final_pay||0,
+      usedLeave:r.used_leave_float||r.used_leave||0,
+      fRemain:r.f_remain_float||r.f_remain||0,
+      usedRemainder:r.used_remainder||0,
+      finalPay:r.final_pay_float||r.final_pay||0,
       special:r.special||'', diff:r.diff||0,
-      hRows:r.h_rows||[], fRows:r.f_rows||[]
+      hRows:r.h_rows||[], fRows:r.f_rows||[],
+      compLeave:r.comp_leave||0
     }));
   }catch(e){console.error('loadHistory:',e);return[];}
 }
@@ -1324,10 +1429,13 @@ async function saveToHistory(){
       era:res.era, has_unpaid:res.hasU,
       h_total:res.hTotal, f_total:res.fTotal,
       diff_adj:res.diffAdj, f_year:res.fYear,
-      used_leave:res.usedLeave, f_remain:res.fRemain,
-      used_remainder:res.usedRemainder||0, final_pay:res.finalPay,
+      used_leave:Math.floor(res.usedLeave||0), f_remain:Math.floor(res.fRemain||0),
+      used_remainder:Math.floor(res.usedRemainder||0), final_pay:Math.floor(res.finalPay||0),
+      used_leave_float:res.usedLeave||0, f_remain_float:res.fRemain||0,
+      final_pay_float:res.finalPay||0,
       special:res.special||'', diff:res.diff,
-      h_rows:res.hRows, f_rows:res.fRows
+      h_rows:res.hRows, f_rows:res.fRows,
+      comp_leave:res.compLeave||0
     }));
     await sbFetch('POST','leave_settlements',rows);
     renderHistory();updateBadge();
@@ -1413,6 +1521,8 @@ async function renderHistory(){
         <td class="num">${r.hTotal}</td><td class="num">${r.fTotal}</td>
         <td class="num">${r.fRemain}</td>
         <td class="num" style="font-weight:600;color:var(--accent)">${r.finalPay}</td>
+        <td class="num" style="color:var(--text2)">${r.compLeave>0?r.compLeave:'—'}</td>
+        <td class="num" style="font-weight:700;color:#1d4ed8">${round2((r.finalPay||0)+(r.compLeave||0))}</td>
         <td style="font-size:12px;color:var(--text2)">${r.special||''}</td>
       </tr>`;
     }).join('');
@@ -1556,7 +1666,9 @@ const EXCEL_COL_DEFS = {
   hTotal:['입사일기준누계', r=>r.hTotal], fTotal:['회계연도기준누계', r=>r.fTotal],
   diffAdj:['누계차이(①)', r=>r.diffAdj||0], fYear:['퇴직연도발생', r=>r.fYear||0],
   usedLeave:['퇴직연도사용', r=>r.usedLeave||0], fRemain:['퇴직연도잔여(②)', r=>r.fRemain],
-  finalPay:['최종지급일수', r=>r.finalPay], special:['비고', r=>r.special],
+  finalPay:['최종미사용연차', r=>r.finalPay], compLeave:['보상휴가지급일수', r=>r.compLeave||0],
+  totalPay:['최종 지급(보상휴가+미사용연차)', r=>round2((r.finalPay||0)+(r.compLeave||0))],
+  special:['비고', r=>r.special],
   batchId:['배치ID', r=>r.batchId]
 };
 
@@ -1599,21 +1711,43 @@ async function generateExcel(){
     XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(summary), '정산요약');
 
     if(includeDetail){
-      const hDetail=[];
+      const usedSheetNames = {};
       rows.forEach(r=>{
-        (r.hRows||[]).forEach(row=>{
-          hDetail.push({'이름':r.name,'사번':r.empId,'구분':row.period,'발생일':row.earnDate||'','산정기간':row.range||'','산정근거':row.basis||'','발생일수':row.days,'실지급':row._net!==undefined?row._net:row.days,'비고':row.note||''});
-        });
-      });
-      if(hDetail.length)XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(hDetail), '입사일기준상세');
+        // 시트명 생성 (엑셀 제약: 31자 이하, \ / ? * [ ] : 금지, 중복 시 번호 부여)
+        let baseName = (r.name || '이름없음').replace(/[\\\/\?\*\[\]:]/g,'').slice(0,25) + (r.empId?('_'+String(r.empId).slice(0,4)):'');
+        if(!baseName) baseName = '대상자';
+        let sheetName = baseName.slice(0,31);
+        let dupCount = usedSheetNames[sheetName] || 0;
+        if(dupCount > 0){
+          sheetName = (baseName.slice(0,28) + '_' + (dupCount+1)).slice(0,31);
+        }
+        usedSheetNames[baseName] = dupCount + 1;
 
-      const fDetail=[];
-      rows.forEach(r=>{
-        (r.fRows||[]).forEach(row=>{
-          fDetail.push({'이름':r.name,'사번':r.empId,'발생연도':row.year+'년','발생일':row.earnDate||'','산정대상기간':row.prevPeriod||'','근속':row.ten+'년차','발생일수':row.days,'비고':row.note||''});
-        });
+        const hRows = r.hRows || [];
+        const fRows = r.fRows || [];
+
+        // 좌측: 입사일 기준 / 우측: 회계연도 기준 — 같은 행에 나란히 배치
+        const header = ['[입사일 기준]','구분','발생일','산정기간','산정근거','발생일수','실지급','비고',
+                         '','[회계연도 기준]','발생연도','발생일','산정대상기간','근속','발생일수','비고'];
+        const maxLen = Math.max(hRows.length, fRows.length);
+        const body = [];
+        for(let i=0;i<maxLen;i++){
+          const h = hRows[i];
+          const f = fRows[i];
+          body.push([
+            '', h?h.period:'', h?(h.earnDate||''):'', h?(h.range||''):'', h?(h.basis||''):'',
+            h?h.days:'', h?(h._net!==undefined?h._net:h.days):'', h?(h.note||''):'',
+            '', '', f?(f.year+'년'):'', f?(f.earnDate||''):'', f?(f.prevPeriod||''):'',
+            f?(f.ten+'년차'):'', f?f.days:'', f?(f.note||''):''
+          ]);
+        }
+        const infoRow = [`${r.name||''} (${r.empId||'사번없음'}) — 입사:${r.joinDate||''} 퇴사:${r.retireDate||''} — 최종미사용연차:${r.finalPay}일${r.compLeave>0?', 보상휴가:'+r.compLeave+'일':''}`];
+        const sheetData = [infoRow, [], header, ...body];
+        const ws = XLSX.utils.aoa_to_sheet(sheetData);
+        ws['!cols'] = [{wch:3},{wch:14},{wch:11},{wch:20},{wch:16},{wch:9},{wch:8},{wch:26},
+                       {wch:3},{wch:14},{wch:10},{wch:11},{wch:20},{wch:9},{wch:9},{wch:26}];
+        XLSX.utils.book_append_sheet(wb, ws, sheetName);
       });
-      if(fDetail.length)XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(fDetail), '회계연도기준상세');
     }
 
     XLSX.writeFile(wb,'연차정산_누적내역.xlsx');
@@ -1662,14 +1796,15 @@ async function generatePdf(){
       <h1>연차미사용수당 정산 명단</h1>
       <p class="meta">출력일: ${todayStr} &nbsp;|&nbsp; 대상: ${rows.length}명 &nbsp;|&nbsp; 총 지급일수: ${totalDays}일</p>
       <table>
-        <thead><tr><th>배치</th><th>이름</th><th>사번</th><th>소속/팀</th><th>입사일</th><th>퇴사일</th><th>입사일기준</th><th>회계연도기준</th><th>퇴직연도잔여</th><th>최종지급</th><th>비고</th></tr></thead>
+        <thead><tr><th>배치</th><th>이름</th><th>사번</th><th>소속/팀</th><th>입사일</th><th>퇴사일</th><th>입사일기준</th><th>회계연도기준</th><th>퇴직연도잔여</th><th>최종미사용연차</th><th>보상휴가</th><th>최종 지급<br>(보상휴가+미사용연차)</th><th>비고</th></tr></thead>
         <tbody>
           ${rows.map(r=>`<tr>
             <td>${r.batchId}</td><td>${r.name}</td><td>${r.empId||''}</td>
             <td>${[r.dept,r.team].filter(Boolean).join('/')}</td>
             <td>${r.joinDate}</td><td>${r.retireDate}</td>
             <td class="num">${r.hTotal}</td><td class="num">${r.fTotal}</td><td class="num">${r.fRemain}</td>
-            <td class="num strong">${r.finalPay}</td><td>${r.special||''}</td>
+            <td class="num">${r.finalPay}</td><td class="num">${r.compLeave>0?r.compLeave:'-'}</td>
+            <td class="num strong">${round2((r.finalPay||0)+(r.compLeave||0))}</td><td>${r.special||''}</td>
           </tr>`).join('')}
         </tbody>
       </table>`;
@@ -1687,7 +1822,7 @@ async function generatePdf(){
         <div class="person-block ${idx>0?'page-break':''}">
           <h2>${r.name} <span class="sub">(${r.empId||'사번없음'} / ${[r.dept,r.team].filter(Boolean).join('-')||'소속없음'})</span></h2>
           <p class="meta">입사일: ${r.joinDate} &nbsp;|&nbsp; 퇴사일: ${r.retireDate} &nbsp;|&nbsp; 적용법령: ${eraLabel(r.era)} &nbsp;|&nbsp; 배치: ${r.batchId}</p>
-          <div class="result-box">최종 지급 일수: <strong>${r.finalPay}일</strong></div>
+          <div class="result-box">최종 지급 일수: <strong>${r.finalPay}일</strong>${r.compLeave>0?` &nbsp;|&nbsp; 보상휴가 지급일수: <strong>${r.compLeave}일</strong>`:''}</div>
           <h3>입사일 기준 발생 내역</h3>
           <table><thead><tr><th>구분</th><th>발생일</th><th>실지급</th><th>비고</th></tr></thead><tbody>${hTr}</tbody></table>
           <h3>회계연도 기준 발생 내역</h3>
@@ -1725,10 +1860,10 @@ async function generatePdf(){
 
 
 function downloadTemplate(){
-  var h=['이름','사번','소속','팀명','입사일','퇴사일','퇴직연도 연차 사용 일수','무급휴직 여부(O/X)','무급휴직 시작1','무급휴직 종료1','무급휴직 시작2','무급휴직 종료2','결근시작1','결근종료1','결근시작2','결근종료2','비고'];
-  var s1=['홍길동','EMP001','인사팀','HRM파트','2018-03-26','2026-06-30','4','O','2024-02-01','2024-03-31','','','','','','',''];
-  var s2=['김영희','EMP002','개발팀','플랫폼파트','2020-11-18','2026-05-31','2','X','','','','','2021-02-01','2021-02-05','','','육아휴직 후 퇴직'];
-  var s3=['이철수','EMP003','영업팀','B2B파트','2015-07-01','2026-07-31','0','O','2025-03-06','2025-07-10','','','2023-05-01','2023-05-03','','',''];
+  var h=['이름','사번','소속','팀명','입사일','퇴사일','퇴직연도 연차 사용 일수','무급휴직 여부(O/X)','무급휴직 시작1','무급휴직 종료1','무급휴직 시작2','무급휴직 종료2','결근시작1','결근종료1','결근시작2','결근종료2','보상휴가 지급일수','비고'];
+  var s1=['홍길동','EMP001','인사팀','HRM파트','2018-03-26','2026-06-30','4','O','2024-02-01','2024-03-31','','','','','','','0',''];
+  var s2=['김영희','EMP002','개발팀','플랫폼파트','2020-11-18','2026-05-31','2','X','','','','','2021-02-01','2021-02-05','','','3','육아휴직 후 퇴직'];
+  var s3=['이철수','EMP003','영업팀','B2B파트','2015-07-01','2026-07-31','0','O','2025-03-06','2025-07-10','','','2023-05-01','2023-05-03','','','0',''];
   var data=[h,s1,s2,s3];
   var ws=XLSX.utils.aoa_to_sheet(data);
   var wb=XLSX.utils.book_new();
@@ -1747,6 +1882,7 @@ function downloadTemplate(){
     ['무급휴직 시작2 / 종료2','선택','없으면 공란'],
     ['결근시작1 / 결근종료1','선택','YYYY-MM-DD, 실제 결근 기간 (최대 2개)'],
     ['결근시작2 / 결근종료2','선택','없으면 공란'],
+    ['보상휴가 지급일수','선택','최종 지급해야 하는 보상휴가 일수 (계산에는 반영되지 않는 단순 기록용, 없으면 0)'],
     ['비고','선택','특이사항']
   ];
   var ws2=XLSX.utils.aoa_to_sheet(guide);
@@ -2031,36 +2167,60 @@ function runYrCalc() {
         metrics = '';
         document.getElementById('yr_resultLabel').textContent = yr + '.01.01 발생 (구법, 입사 첫 해)';
       } else if (isFirstYear && entMid) {
-        // 입사 첫 해 비례 (분모: 전년도 전체 소정, 분자: 입사후 소정)
-        var 전년소정 = workdaysInRange(prevStart, prevEnd);
-        var 입사후소정 = workdaysInRange(jd, prevEnd);
-        var 무급f = hasU ? unpaidWD(jd, prevEnd, yrUnpaidPeriods) : 0;
-        var 실질f = 입사후소정 - 무급f;
-        var 결근f = absentDays;
-        var 출근f = Math.max(0, 실질f - 결근f);
-        var 율1f = 입사후소정 > 0 ? 출근f / 입사후소정 : 1;
-        var 율2f = 실질f > 0 ? 출근f / 실질f : 1;
-
-        if (율1f >= 0.8) {
-          days = Math.ceil(base * 입사후소정 / 전년소정);
-          detail = '<div style="background:var(--surface2);border-radius:var(--r);padding:12px 14px;font-size:12px;line-height:2">' +
-            '입사 첫 해 비례 산정 (분모: 전년도 전체 소정 ' + 전년소정 + '일, 분자: 입사후 소정 ' + 입사후소정 + '일)<br>' +
-            '<div style="border-left:3px solid var(--accent);padding-left:10px">1단계 출근율 ' + (율1f*100).toFixed(1) + '% (≥80%) ✅ → 비례 부여<br>' +
-            '15일 × ' + 입사후소정 + '/' + 전년소정 + ' = <strong>' + days + '일</strong></div></div>';
-        } else if (율2f >= 0.8) {
-          days = Math.ceil(base * 실질f / 전년소정);
-          detail = '<div style="background:var(--surface2);border-radius:var(--r);padding:12px 14px;font-size:12px;line-height:2">' +
-            '입사 첫 해 비례 산정<br>' +
-            '<div style="border-left:3px solid var(--red);padding-left:10px;margin-bottom:6px">1단계 출근율 ' + (율1f*100).toFixed(1) + '% (<80%) ❌ → 2단계 진행</div>' +
-            '<div style="border-left:3px solid var(--accent);padding-left:10px">2단계 실질출근율 ' + (율2f*100).toFixed(1) + '% (≥80%) ✅ → 비례 부여<br>' +
-            '15일 × 실질소정 ' + 실질f + '/전년소정 ' + 전년소정 + ' = <strong>' + days + '일</strong></div></div>';
+        // 입사 첫 해 비례
+        // 기본: 역일 기준 / 무급휴직 있으면: 소정근로일 기준 (출근율 판단)
+        // mid era: 1년 미만 월차 차감 (§60③) / post2018: 미차감
+        var rawDaysF;
+        var noteBase;
+        if (hasU) {
+          // 무급휴직 있음 → 소정근로일 기준
+          var 전년소정 = workdaysInRange(prevStart, prevEnd);
+          var 입사후소정 = workdaysInRange(jd, prevEnd);
+          var 무급f = unpaidWD(jd, prevEnd, yrUnpaidPeriods);
+          var 실질f = 입사후소정 - 무급f;
+          var 결근f = absentDays;
+          var 출근f = Math.max(0, 실질f - 결근f);
+          var 율1f = 입사후소정 > 0 ? 출근f / 입사후소정 : 1;
+          var 율2f = 실질f > 0 ? 출근f / 실질f : 1;
+          if (율1f >= 0.8) {
+            rawDaysF = Math.ceil(base * 입사후소정 / 전년소정);
+            noteBase = '첫해비례(소정) ' + 입사후소정 + '/' + 전년소정 + '일, 출근율 ' + (율1f*100).toFixed(1) + '%';
+          } else if (율2f >= 0.8) {
+            rawDaysF = Math.ceil(base * 실질f / 전년소정);
+            noteBase = '첫해비례(소정·실질) ' + 실질f + '/' + 전년소정 + '일, 실질출근율 ' + (율2f*100).toFixed(1) + '%';
+          } else {
+            rawDaysF = 0;
+            noteBase = '첫해비례(소정) 출근율 미달 → 0일';
+          }
         } else {
-          days = '월개근×1일';
-          detail = '<div style="background:var(--surface2);border-radius:var(--r);padding:12px 14px;font-size:12px;line-height:2">' +
-            '입사 첫 해 비례 산정<br>' +
-            '<div style="border-left:3px solid var(--red);padding-left:10px;margin-bottom:6px">1단계 출근율 ' + (율1f*100).toFixed(1) + '% (<80%) ❌</div>' +
-            '<div style="border-left:3px solid var(--red);padding-left:10px">2단계 실질출근율 ' + (율2f*100).toFixed(1) + '% (<80%) ❌ → §60② 월 1일</div></div>';
+          // 무급휴직 없음 → 역일 기준
+          var 전년역일 = calDays(prevStart, prevEnd);
+          var 입사후역일 = calDays(jd, prevEnd);
+          rawDaysF = Math.ceil(base * 입사후역일 / 전년역일);
+          noteBase = '첫해비례(역일) ' + 입사후역일 + '/' + 전년역일 + '일';
         }
+
+        // mid era: 1년 미만 월차 차감
+        var mc1stYr = 0;
+        if (era === 'mid') {
+          for (var mm1 = 1; mm1 <= 11; mm1++) {
+            var ed1 = new Date(jd); ed1.setMonth(ed1.getMonth() + mm1);
+            if (ed1 > prevEnd || ed1 > new Date()) break;
+            mc1stYr++;
+          }
+          days = Math.max(0, rawDaysF - mc1stYr);
+        } else {
+          days = rawDaysF;
+        }
+
+        var deductNote = (era === 'mid' && mc1stYr > 0)
+          ? '<br><span style="color:var(--accent)">1년미만 월차 ' + mc1stYr + '일 차감 → <strong>' + days + '일</strong></span>'
+          : '';
+        detail = '<div style="background:var(--surface2);border-radius:var(--r);padding:12px 14px;font-size:12px;line-height:2">' +
+          noteBase + '<br>' +
+          '<div style="border-left:3px solid var(--accent);padding-left:10px">' +
+          '15일 × 비례 = <strong>' + rawDaysF + '일</strong>' + deductNote + '</div></div>';
+        metrics = '';
         document.getElementById('yr_resultLabel').textContent = yr + '.01.01 발생 (입사 첫 해 비례)';
         metrics = '';
 
@@ -2225,7 +2385,8 @@ function runCalc() {
   if (!jv||!rv) { alert('입사일과 퇴직일을 입력하세요.'); return; }
   var joinDate = new Date(jv), retireDate = new Date(rv);
   if (retireDate <= joinDate) { alert('퇴직일은 입사일 이후여야 합니다.'); return; }
-  var usedLeave = parseInt(document.getElementById('calc_usedLeave').value)||0;
+  var usedLeave = parseFloat(document.getElementById('calc_usedLeave').value)||0;
+  var compLeave = parseFloat(document.getElementById('calc_compLeave').value)||0;
   var hasU = document.getElementById('calc_unpaidToggle').checked;
   var periods = hasU ? calcUnpaidPeriods : [];
   var hasAbsent = document.getElementById('calc_absentToggle').checked;
@@ -2237,11 +2398,28 @@ function runCalc() {
   var pTeam = document.getElementById('calc_team').value.trim();
   var p = { name:pName, empId:pEmpId, dept:pDept, team:pTeam, special:'', joinDate:joinDate, retireDate:retireDate, usedLeave:usedLeave, unpaidPeriods:periods, absentPeriods: hasAbsent ? calcAbsentPeriods : [] };
   var res = calcPerson(p);
+  res.compLeave = compLeave; // 보상휴가 지급일수 (계산에는 영향 없음, 기록용)
 
   // 결과 표시
-  document.getElementById('calc_finalPay').textContent = res.finalPay;
-  document.getElementById('calc_resultLabel').textContent = res.name ? (res.name + ' — 미사용수당 지급 대상') : '미사용수당 지급 대상';
+  document.getElementById('calc_finalPay').textContent = round2(res.finalPay);
+  document.getElementById('calc_resultLabel').textContent = res.name ? (res.name + ' — 미사용연차수당 지급 대상') : '미사용연차수당 지급 대상';
   document.getElementById('calc_result').style.display = 'block';
+
+  var compBox = document.getElementById('calc_compLeaveBox');
+  if (compLeave > 0) {
+    compBox.style.display = 'flex';
+    document.getElementById('calc_compLeaveVal').textContent = round2(compLeave);
+  } else {
+    compBox.style.display = 'none';
+  }
+
+  var totalBox = document.getElementById('calc_totalBox');
+  if (compLeave > 0) {
+    totalBox.style.display = 'flex';
+    document.getElementById('calc_totalVal').textContent = round2(res.finalPay + compLeave);
+  } else {
+    totalBox.style.display = 'none';
+  }
 
   // 공식
   var formulaHtml =
@@ -2327,10 +2505,13 @@ async function saveCalcResult() {
       era: res.era, has_unpaid: res.hasU,
       h_total: res.hTotal, f_total: res.fTotal,
       diff_adj: res.diffAdj, f_year: res.fYear,
-      used_leave: res.usedLeave, f_remain: res.fRemain,
-      used_remainder: res.usedRemainder, final_pay: res.finalPay,
+      used_leave: Math.floor(res.usedLeave||0), f_remain: Math.floor(res.fRemain||0),
+      used_remainder: Math.floor(res.usedRemainder||0), final_pay: Math.floor(res.finalPay||0),
+      used_leave_float: res.usedLeave||0, f_remain_float: res.fRemain||0,
+      final_pay_float: res.finalPay||0,
       special: res.special||'', diff: res.diff,
-      h_rows: res.hRows, f_rows: res.fRows
+      h_rows: res.hRows, f_rows: res.fRows,
+      comp_leave: res.compLeave||0
     }]);
     alert(name + ' 저장 완료! ☁️ 팀원과 공유됩니다.');
   } catch(e) { alert('저장 오류: ' + e.message); }
@@ -2432,6 +2613,7 @@ function resetCalcForm() {
   document.getElementById('calc_joinDate').value = '';
   document.getElementById('calc_retireDate').value = '';
   document.getElementById('calc_usedLeave').value = '0';
+  document.getElementById('calc_compLeave').value = '0';
   document.getElementById('calc_lawBadge').innerHTML = '';
   document.getElementById('calc_unpaidToggle').checked = false;
   document.getElementById('calc_unpaidBlock').style.display = 'none';
@@ -2522,6 +2704,7 @@ function bindDateInputs() {
 
 bindDateInputs();
 renderHistory();
+
 </script>
 
 <div class="modal-overlay" id="histModalOverlay" onclick="closeHistModal(event)">
