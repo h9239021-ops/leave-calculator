@@ -855,7 +855,12 @@ function hireBasis(jd,rd,periods,era,hasU,absentPeriods){
     if(ed.getTime()>=rms)return null;
     const ps=new Date(jd);ps.setFullYear(ps.getFullYear()+(yr-1));
     const pe=addD(ed,-1);
-    const att=calcAtt(ps,pe,periods,hasU);
+    // 이 산정기간(ps~pe)에 무급휴직이 실제 겹치는지 확인
+    const hasUthisAnn=hasU&&periods.some(p=>{
+      const ps2=new Date(p.start),pe2=new Date(p.end);
+      return ps2<=pe&&pe2>=ps;
+    });
+    const att=calcAtt(ps,pe,periods,hasUthisAnn);
 
     // ── 구법(pre2003): 출근율 90%/100% 기준, 별도 로직 ──
     if(era==='pre2003'){
@@ -864,7 +869,7 @@ function hireBasis(jd,rd,periods,era,hasU,absentPeriods){
       if(isNewLaw){
         // 신법 전환(2005.7.1 이후 발생분): 80% 기준 15일 체계로 전환, 근속년수는 그대로 누적
         const base=annualBase(yr);
-        const r=calcLeave(base,att,hasU);
+        const r=calcLeave(base,att,hasUthisAnn);
         let days=r.days,note='';
         if(r.monthly){
           let mc=0;
@@ -895,7 +900,7 @@ function hireBasis(jd,rd,periods,era,hasU,absentPeriods){
     }
 
     const base=annualBase(yr);
-    const r=calcLeave(base,att,hasU);
+    const r=calcLeave(base,att,hasUthisAnn);
     let note='',days=r.days;
     if(r.monthly){
       // 실질소정 출근율 80% 미만 → 월 1일 (개근월수 산정)
@@ -1029,7 +1034,7 @@ function fiscalBasis(jd,rd,periods,era,hasU,absentPeriods){
         // 신법 전환(2005.7.1 이후 발생분): 80% 기준 15일 체계로 전환, 근속년수 누적
         const yr=ten;
         const base=annualBase(yr);
-        const r=calcLeave(base,att,hasU);
+        const r=calcLeave(base,att,hasUthisAnn);
         days=r.days;
         if(r.monthly){
           let mc=0;
@@ -1068,8 +1073,13 @@ function fiscalBasis(jd,rd,periods,era,hasU,absentPeriods){
       // mid era: 1년 미만 월차를 비례 연차에서 차감 (§60③)
       // post2018: 미차감 (§60③ 삭제)
       let rawDays;
-      if(hasU){
-        // 무급휴직 있음 → 소정근로일 기준
+      // 이 산정기간(입사일~전년말)에 무급휴직이 실제로 걸쳐있는지 확인
+      const hasUinPeriod=hasU&&periods.some(p=>{
+        const ps2=new Date(p.start),pe2=new Date(p.end);
+        return ps2<=pe&&pe2>=jd;
+      });
+      if(hasUinPeriod){
+        // 해당 기간에 무급휴직 있음 → 소정근로일 기준
         const 전년소정=workdaysInRange(ps,pe);
         const 입사후소정=workdaysInRange(jd,pe);
         const 무급=unpaidWD(jd,pe,periods);
@@ -1082,6 +1092,7 @@ function fiscalBasis(jd,rd,periods,era,hasU,absentPeriods){
           rawDays=Math.ceil(15*입사후소정/전년소정);
           note=`첫해비례(소정) ${입사후소정}/${전년소정}일`;
         }
+        days=rawDays;
       }else{
         // 무급휴직 없음 → 역일 기준 (소수 상태로 월차 차감 후 올림)
         const 전년역일=calDays(ps,pe);
@@ -1107,7 +1118,12 @@ function fiscalBasis(jd,rd,periods,era,hasU,absentPeriods){
         days=rawDays;
       }
     }else{
-      const att=calcAtt(ps,pe,periods,hasU);const r=calcLeave(base,att,hasU);days=r.days;
+      // 이 산정기간(ps~pe)에 무급휴직이 실제 겹치는지 확인
+      const hasUthis=hasU&&periods.some(p=>{
+        const ps2=new Date(p.start),pe2=new Date(p.end);
+        return ps2<=pe&&pe2>=ps;
+      });
+      const att=calcAtt(ps,pe,periods,hasUthis);const r=calcLeave(base,att,hasUthis);days=r.days;
       if(r.monthly){
         // 실질 80% 미만 → 월 1일: 개근월 산정
         let mc=0;
@@ -2172,8 +2188,13 @@ function runYrCalc() {
         // mid era: 1년 미만 월차 차감 (§60③) / post2018: 미차감
         var rawDaysF;
         var noteBase;
-        if (hasU) {
-          // 무급휴직 있음 → 소정근로일 기준
+        // 이 산정기간(입사일~전년말)에 무급휴직이 실제 겹치는지 확인
+        var hasUinFiscal = hasU && yrUnpaidPeriods.some(function(p){
+          var ps2=new Date(p.start), pe2=new Date(p.end);
+          return ps2 <= prevEnd && pe2 >= jd;
+        });
+        if (hasUinFiscal) {
+          // 해당 기간에 무급휴직 있음 → 소정근로일 기준
           var 전년소정 = workdaysInRange(prevStart, prevEnd);
           var 입사후소정 = workdaysInRange(jd, prevEnd);
           var 무급f = unpaidWD(jd, prevEnd, yrUnpaidPeriods);
@@ -2227,7 +2248,11 @@ function runYrCalc() {
       } else {
         // 전년도 전체 기간 출근율 산정
         var 소정f = workdaysInRange(prevStart, prevEnd);
-        var 무급f2 = hasU ? unpaidWD(prevStart, prevEnd, yrUnpaidPeriods) : 0;
+        var hasUthisF = hasU && yrUnpaidPeriods.some(function(p){
+          var ps2=new Date(p.start), pe2=new Date(p.end);
+          return ps2 <= prevEnd && pe2 >= prevStart;
+        });
+        var 무급f2 = hasUthisF ? unpaidWD(prevStart, prevEnd, yrUnpaidPeriods) : 0;
         var judged = (era === 'pre2003')
           ? judgePre2003(tenureYears, 소정f, 무급f2, absentDays, (yr-1) + '.01.01 ~ ' + (yr-1) + '.12.31', new Date(yr,0,1))
           : judge(base, 소정f, 무급f2, absentDays, (yr-1) + '.01.01 ~ ' + (yr-1) + '.12.31');
@@ -2268,7 +2293,11 @@ function runYrCalc() {
       var pStart2 = new Date(jd); pStart2.setFullYear(jd.getFullYear() + (tenureYears-1));
       var pEnd2   = addD(earnDate2, -1);
       var 소정h   = workdaysInRange(pStart2, pEnd2);
-      var 무급h   = hasU ? unpaidWD(pStart2, pEnd2, yrUnpaidPeriods) : 0;
+      var hasUthisH = hasU && yrUnpaidPeriods.some(function(p){
+        var ps2=new Date(p.start), pe2=new Date(p.end);
+        return ps2 <= pEnd2 && pe2 >= pStart2;
+      });
+      var 무급h   = hasUthisH ? unpaidWD(pStart2, pEnd2, yrUnpaidPeriods) : 0;
       var base3   = era === 'pre2003' ? 12 : annualBase(tenureYears);
       var judgedH = (era === 'pre2003')
         ? judgePre2003(tenureYears, 소정h, 무급h, absentDays, fmtD(pStart2) + ' ~ ' + fmtD(pEnd2), earnDate2)
